@@ -5,7 +5,7 @@ import (
 	"peek8.io/conscan/pkg/grypemodels"
 )
 
-type CMDVulneResult struct {
+type CMDVulnerabilityResult struct {
 	TrivyResult *types.Report
 	GrypeResult *grypemodels.Document
 }

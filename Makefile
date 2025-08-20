@@ -16,10 +16,6 @@ build: fmt vet ## Build manager binary.
 	@mkdir -p $(GOBIN)
 	@go build -o $(GOBIN)/$(BINARY_NAME) .
 
-## Run the app
-run: build
-	@$(GOBIN)/$(BINARY_NAME)
-
 .PHONY: fmt
 fmt: ## Run go fmt against code.
 	go fmt ./...
@@ -29,8 +25,8 @@ vet: ## Run go vet against code.
 	go vet ./...
 
 .PHONY: run
-run: fmt vet ## Run a controller from your host.
-	go run main.go
+run: build ## Run a controller from your host.
+	@$(GOBIN)/$(BINARY_NAME)
 
 ## Run tests
 test:
