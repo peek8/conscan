@@ -1,6 +1,5 @@
 package grypemodels
 
-
 type IgnoredMatch struct {
 	Match
 	AppliedIgnoreRules []IgnoreRule `json:"appliedIgnoreRules"`
@@ -25,4 +24,3 @@ type IgnoreRulePackage struct {
 	Location     string `json:"location,omitempty"`
 	UpstreamName string `json:"upstream-name,omitempty"`
 }
-

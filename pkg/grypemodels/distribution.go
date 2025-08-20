@@ -1,6 +1,5 @@
 package grypemodels
 
-
 // distribution provides information about a detected Linux distribution.
 type distribution struct {
 	Name     string   `json:"name"`               // Name of the Linux distribution

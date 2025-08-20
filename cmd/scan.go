@@ -17,13 +17,13 @@ var scanUsage = "use conscan scan imageTag"
 var scanCmd = &cobra.Command{
 	Use:   "scan",
 	Short: "Scans vulnerabilities in a container image",
-	Long: `Scans vulnerabilities in a container image`,
+	Long:  `Scans vulnerabilities in a container image`,
 	Run: func(cmd *cobra.Command, args []string) {
 		if len(args) == 0 {
 			fmt.Println("Image tag missing")
 			fmt.Println(scanUsage)
 			os.Exit(1)
-		} 
+		}
 
 		fmt.Printf("Scanning Image %s...", args[0])
 		scanner.ScanVuln(args[0])

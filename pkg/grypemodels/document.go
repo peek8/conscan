@@ -1,6 +1,5 @@
 package grypemodels
 
-
 // Document represents the JSON document to be presented
 type Document struct {
 	Matches        []Match        `json:"matches"`

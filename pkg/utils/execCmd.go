@@ -7,24 +7,22 @@ import (
 
 // Trivy Scanner Flag
 const (
-	TrivyScannerVulnFlag = "vuln"
-	TrivyScannerMisConfigFlag = "misconfig" 
-	TrivyScannerSecretFlag = "secret" 
-	TrivyScannerLicenseFlag = "license"
+	TrivyScannerVulnFlag      = "vuln"
+	TrivyScannerMisConfigFlag = "misconfig"
+	TrivyScannerSecretFlag    = "secret"
+	TrivyScannerLicenseFlag   = "license"
 )
 
 // Trivy output format
 const (
-	FormatJson = "json"
+	FormatJson  = "json"
 	FormatTable = "table"
 )
-
-
 
 func ExecuteCommand(cmdName string, args ...string) (string, error, string) {
 	// Define the command and its arguments
 	// cmd := exec.Command(  "trivy", "-d",  "image", "alpine:edge", "--scanners", "vuln", "-f", "json" )
-	cmd := exec.Command( cmdName, args...)
+	cmd := exec.Command(cmdName, args...)
 
 	// Create buffers to capture stdout and stderr
 	var stdout, stderr bytes.Buffer
@@ -46,10 +44,9 @@ func TrivyVulnScanCmdArgs(imageTag string) []string {
 }
 
 func GrypeVulnScanCmdArgs(imageTag string) []string {
-	return []string{imageTag, "-o", FormatJson} 
+	return []string{imageTag, "-o", FormatJson}
 }
 
-
-func trivyGeneralArgs(imageTag string) []string  {
-	return []string{"image", imageTag, "-f", FormatJson} 
-} 
+func trivyGeneralArgs(imageTag string) []string {
+	return []string{"image", imageTag, "-f", FormatJson}
+}
