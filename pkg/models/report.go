@@ -22,11 +22,7 @@ type DetectedVulnerability struct {
 	FixedVersion     string `json:",omitempty"`
 	Status           string `json:",omitempty"`
 
-	// Embed vulnerability details
-	Vulnerability
-}
-
-type Vulnerability struct {
+	// Vulnerability details
 	Title       string   `json:",omitempty"`
 	Description string   `json:",omitempty"`
 	Severity    string   `json:",omitempty"` // Selected from VendorSeverity, depending on a scan target
@@ -37,9 +33,20 @@ type Vulnerability struct {
 	References       []string   `json:",omitempty"`
 	PublishedDate    *time.Time `json:",omitempty"` // Take from NVD
 	LastModifiedDate *time.Time `json:",omitempty"` // Take from NVD
+}
 
-	// Custom is basically for extensibility and is not supposed to be used in OSS
-	Custom any `json:",omitempty"`
+func (dv *DetectedVulnerability) FromGrypeVuln(gVuln DetectedVulnerability) DetectedVulnerability {
+	dv.CvssScore = gVuln.CvssScore
+	dv.Severity = gVuln.Severity
+
+	return *dv
+}
+
+func (dv *DetectedVulnerability) FromTrivyVuln(tVuln DetectedVulnerability) DetectedVulnerability {
+	dv.Title = tVuln.Title
+	dv.Description = tVuln.Description
+
+	return *dv
 }
 
 type ImageMetadata struct {
