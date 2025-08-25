@@ -26,7 +26,7 @@ var scanCmd = &cobra.Command{
 		}
 
 		fmt.Printf("Scanning Image %s...", args[0])
-		scanner.ScanVuln(args[0])
+		scanner.ScanImage(args[0])
 	},
 }
 

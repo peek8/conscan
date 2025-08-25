@@ -1,13 +1,26 @@
 package scanner
 
-import "log"
+import (
+	"encoding/json"
+	"fmt"
+	"log"
+)
 
 func ScanImage(imageTag string) {
-	_, err := ScanVuln(imageTag)
-
+	result, err := ScanVuln(imageTag)
 	if err != nil {
-		log.Fatalf("Error while scanning vulnerability from image %v", err)
+		log.Fatalf("Error occurred while scanning image for vulnerabilities %v", err)
 	}
 
-	// merge and deduplicate vulnerability
+	report, err := result.ToReport()
+	if err != nil {
+		log.Fatalf("Error occurred while generating reports %v", err)
+	}
+
+	out, err := json.MarshalIndent(report, "", "	")
+	if err != nil {
+		log.Fatalf("Error occurred while Converting reports to json %v", err)
+	}
+
+	fmt.Println(string(out))
 }

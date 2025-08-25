@@ -2,12 +2,14 @@ package models
 
 import (
 	"fmt"
+	"sort"
 	"strings"
 
 	trivydbtypes "github.com/aquasecurity/trivy-db/pkg/types"
 	trivytypes "github.com/aquasecurity/trivy/pkg/types"
 	"github.com/samber/lo"
 	"peek8.io/conscan/pkg/grypemodels"
+	"peek8.io/conscan/pkg/utils"
 )
 
 type CMDVulnerabilityResult struct {
@@ -16,6 +18,14 @@ type CMDVulnerabilityResult struct {
 }
 
 func (cvr *CMDVulnerabilityResult) ToReport() (VulnerabilityReport, error) {
+	fmt.Println("Trivy Vulnerabilities:: ", len(cvr.TrivyResult.Results[0].Vulnerabilities))
+	fmt.Println("grype Vulnerabilities:: ", len(cvr.GrypeResult.Matches))
+
+	vulns := cvr.aggregateVulnerabilities()
+	sort.Slice(vulns, func(i, j int) bool {
+		return vulns[i].CvssScore > vulns[j].CvssScore
+	})
+
 	vr := VulnerabilityReport{
 		CreatedAt:    cvr.TrivyResult.CreatedAt,
 		ArtifactName: cvr.TrivyResult.ArtifactName,
@@ -36,7 +46,7 @@ func (cvr *CMDVulnerabilityResult) ToReport() (VulnerabilityReport, error) {
 				Created:      cvr.TrivyResult.Metadata.ImageConfig.Created.Time,
 			},
 		},
-		Vulnerabilities: cvr.aggregateVulnerabilities(),
+		Vulnerabilities: vulns,
 	}
 
 	return vr, nil
@@ -44,7 +54,7 @@ func (cvr *CMDVulnerabilityResult) ToReport() (VulnerabilityReport, error) {
 
 func (cvr *CMDVulnerabilityResult) aggregateVulnerabilities() []DetectedVulnerability {
 	trivyVulns := cvr.normalizeTrivyVulnerabilities(cvr.TrivyResult)
-	grypeVulns := cvr.normalizeGripyVulnerabilities(*cvr.GrypeResult)
+	grypeVulns := cvr.normalizeGripyVulnerabilities(cvr.GrypeResult)
 
 	// Create Vunerability cache where the key is packageID + vulnerabilityID(CVE ID) ie libssl3@3.3.2-r4-CVE-2025-4575,
 	trivyVulnMap := lo.SliceToMap(trivyVulns, func(v DetectedVulnerability) (string, DetectedVulnerability) {
@@ -67,7 +77,7 @@ func (cvr *CMDVulnerabilityResult) aggregateVulnerabilities() []DetectedVulnerab
 	vulnsKeys := lo.UniqKeys(trivyVulnMap, grypVulnMap)
 	return lo.Map(vulnsKeys, func(key string, index int) DetectedVulnerability {
 		trivyVuln, tOk := trivyVulnMap[key]
-		grypeVuln, gOk := trivyVulnMap[key]
+		grypeVuln, gOk := grypVulnMap[key]
 
 		// if its common for two merge them
 		if tOk && gOk {
@@ -139,22 +149,33 @@ func (cvr *CMDVulnerabilityResult) getTrivyCvss(tv trivytypes.DetectedVulnerabil
 	return "", 0
 }
 
-func (cvr *CMDVulnerabilityResult) normalizeGripyVulnerabilities(grypeDoc grypemodels.Document) []DetectedVulnerability {
+func (cvr *CMDVulnerabilityResult) normalizeGripyVulnerabilities(grypeDoc *grypemodels.Document) []DetectedVulnerability {
+	getTitle := func(m grypemodels.Match) string {
+		if len(m.RelatedVulnerabilities) > 0 {
+			// the description is in format like:
+			// Issue summary: some summary Impact summary: detail summary
+			// we will have title as imact summary
+			index := strings.Index(m.RelatedVulnerabilities[0].Description, "Impact summary:")
+			if index > -1 {
+				title := m.RelatedVulnerabilities[0].Description[0:index]
+				title, _ = strings.CutPrefix(title, "Issue summary:")
+
+				return title
+			}
+		}
+
+		return ""
+	}
 	return lo.Map(grypeDoc.Matches, func(m grypemodels.Match, index int) DetectedVulnerability {
-		// the description is in format like:
-		// Issue summary: some summary Impact summary: detail summary
-		// we will have title as imact summary
-		title := m.RelatedVulnerabilities[0].Description[0:strings.Index(m.RelatedVulnerabilities[0].Description, "Impact summary:")]
-		title, _ = strings.CutPrefix(title, "Issue summary:")
 		return DetectedVulnerability{
 			VulnerabilityID:  m.Vulnerability.ID,
 			PkgID:            m.Artifact.Name + "@" + m.Artifact.Version,
 			PkgName:          m.Artifact.Name,
 			InstalledVersion: m.Artifact.Version,
-			FixedVersion:     m.Vulnerability.Fix.Versions[0],
+			FixedVersion:     utils.EitherOrFunc(len(m.Vulnerability.Fix.Versions) > 0, func() string { return m.Vulnerability.Fix.Versions[0] }, ""),
 			Status:           m.Vulnerability.Fix.State,
-			Title:            title,
-			Description:      m.RelatedVulnerabilities[0].Description,
+			Title:            getTitle(m),
+			Description:      utils.EitherOrFunc(len(m.RelatedVulnerabilities) > 0, func() string { return m.RelatedVulnerabilities[0].Description }, m.Vulnerability.Description),
 			Severity:         m.Vulnerability.Severity,
 			//CweIDs: tv.CweIDs,
 			CvssVector: m.Vulnerability.Cvss[0].Vector,
