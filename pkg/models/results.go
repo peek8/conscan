@@ -17,7 +17,7 @@ type CMDVulnerabilityResult struct {
 	GrypeResult *grypemodels.Document
 }
 
-func (cvr *CMDVulnerabilityResult) ToReport() (VulnerabilityReport, error) {
+func (cvr *CMDVulnerabilityResult) ToReport() (ScanReport, error) {
 	fmt.Println("Trivy Vulnerabilities:: ", len(cvr.TrivyResult.Results[0].Vulnerabilities))
 	fmt.Println("grype Vulnerabilities:: ", len(cvr.GrypeResult.Matches))
 
@@ -26,7 +26,7 @@ func (cvr *CMDVulnerabilityResult) ToReport() (VulnerabilityReport, error) {
 		return vulns[i].CvssScore > vulns[j].CvssScore
 	})
 
-	vr := VulnerabilityReport{
+	vr := ScanReport{
 		CreatedAt:    cvr.TrivyResult.CreatedAt,
 		ArtifactName: cvr.TrivyResult.ArtifactName,
 		ArtifactType: string(cvr.TrivyResult.ArtifactType),
@@ -101,7 +101,15 @@ func (cvr *CMDVulnerabilityResult) aggregateVulnerabilities() []DetectedVulnerab
 }
 
 func (cvr *CMDVulnerabilityResult) normalizeTrivyVulnerabilities(tr *trivytypes.Report) []DetectedVulnerability {
-	return lo.Map(tr.Results[0].Vulnerabilities, func(tv trivytypes.DetectedVulnerability, index int) DetectedVulnerability {
+	vRes, found := lo.Find(tr.Results, func(res trivytypes.Result) bool {
+		return res.Class == trivytypes.ClassOSPkg
+	})
+
+	if !found {
+		return []DetectedVulnerability{}
+	}
+
+	return lo.Map(vRes.Vulnerabilities, func(tv trivytypes.DetectedVulnerability, index int) DetectedVulnerability {
 		vector, score := cvr.getTrivyCvss(tv)
 		return DetectedVulnerability{
 			VulnerabilityID:  tv.VulnerabilityID,
@@ -121,7 +129,6 @@ func (cvr *CMDVulnerabilityResult) normalizeTrivyVulnerabilities(tr *trivytypes.
 			LastModifiedDate: tv.LastModifiedDate,
 		}
 	})
-
 }
 
 func (cvr *CMDVulnerabilityResult) getTrivyCvss(tv trivytypes.DetectedVulnerability) (string, float64) {

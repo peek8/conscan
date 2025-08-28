@@ -4,7 +4,7 @@ import (
 	"time"
 )
 
-type VulnerabilityReport struct {
+type ScanReport struct {
 	CreatedAt    time.Time `json:",omitzero"`
 	ArtifactName string    `json:",omitempty"`
 	ArtifactType string    `json:",omitempty"`
