@@ -11,7 +11,7 @@ type ScanReport struct {
 
 	Metadata        ImageMetadata `json:",omitzero"`
 	Vulnerabilities []DetectedVulnerability
-	Secrets         []DetectedSecret
+	Secrets         []DetectedPresSecret
 }
 
 type ImageMetadata struct {

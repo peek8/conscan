@@ -5,7 +5,6 @@ go 1.25.0
 require (
 	github.com/aquasecurity/trivy v0.65.0
 	github.com/aquasecurity/trivy-db v0.0.0-20250723062229-56ec1e482238
-	github.com/go-logr/logr v1.4.3
 	github.com/samber/lo v1.51.0
 	github.com/spf13/cobra v1.9.1
 )

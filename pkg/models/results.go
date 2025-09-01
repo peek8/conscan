@@ -129,12 +129,14 @@ func (cvr *CMDVulnerabilityResult) normalizeTrivyVulnerabilities(tr *trivytypes.
 	})
 }
 
-func (cvr *CMDVulnerabilityResult) extractTrivySecrets(tr *trivytypes.Report) []DetectedSecret {
+func (cvr *CMDVulnerabilityResult) extractTrivySecrets(tr *trivytypes.Report) []DetectedPresSecret {
 	results := lo.Filter(tr.Results, func(res trivytypes.Result, i int) bool {
 		return res.Class == trivytypes.ClassSecret && len(res.Secrets) > 0
 	})
 
-	return lo.FlatMap(results, ExtractTrivySecrets)
+	return lo.FlatMap(results, func(res trivytypes.Result, _ int) []DetectedPresSecret {
+		return ExtractTrivyPresSecrets(res, tr.ArtifactName)
+	})
 }
 
 func (cvr *CMDVulnerabilityResult) getTrivyCvss(tv trivytypes.DetectedVulnerability) (string, float64) {
