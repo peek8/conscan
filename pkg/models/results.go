@@ -18,9 +18,6 @@ type CMDVulnerabilityResult struct {
 }
 
 func (cvr *CMDVulnerabilityResult) ToReport() (ScanReport, error) {
-	fmt.Println("Trivy Vulnerabilities:: ", len(cvr.TrivyResult.Results[0].Vulnerabilities))
-	fmt.Println("grype Vulnerabilities:: ", len(cvr.GrypeResult.Matches))
-
 	vulns := cvr.aggregateVulnerabilities()
 	sort.Slice(vulns, func(i, j int) bool {
 		return vulns[i].CvssScore > vulns[j].CvssScore
@@ -47,6 +44,7 @@ func (cvr *CMDVulnerabilityResult) ToReport() (ScanReport, error) {
 			},
 		},
 		Vulnerabilities: vulns,
+		Secrets:         cvr.extractTrivySecrets(cvr.TrivyResult),
 	}
 
 	return vr, nil
@@ -129,6 +127,14 @@ func (cvr *CMDVulnerabilityResult) normalizeTrivyVulnerabilities(tr *trivytypes.
 			LastModifiedDate: tv.LastModifiedDate,
 		}
 	})
+}
+
+func (cvr *CMDVulnerabilityResult) extractTrivySecrets(tr *trivytypes.Report) []DetectedSecret {
+	results := lo.Filter(tr.Results, func(res trivytypes.Result, i int) bool {
+		return res.Class == trivytypes.ClassSecret && len(res.Secrets) > 0
+	})
+
+	return lo.FlatMap(results, ExtractTrivySecrets)
 }
 
 func (cvr *CMDVulnerabilityResult) getTrivyCvss(tv trivytypes.DetectedVulnerability) (string, float64) {

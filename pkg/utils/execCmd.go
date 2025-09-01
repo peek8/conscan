@@ -40,7 +40,8 @@ func ExecuteCommand(cmdName string, args ...string) (string, error, string) {
 }
 
 func TrivyVulnScanCmdArgs(imageTag string) []string {
-	return append(trivyGeneralArgs(imageTag), "--scanners", TrivyScannerVulnFlag)
+	// return append(trivyGeneralArgs(imageTag), "--scanners", TrivyScannerVulnFlag)
+	return trivyGeneralArgs(imageTag)
 }
 
 func GrypeVulnScanCmdArgs(imageTag string) []string {

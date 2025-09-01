@@ -2,7 +2,6 @@ package scanner
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
 
 	trivytypes "github.com/aquasecurity/trivy/pkg/types"
@@ -42,9 +41,6 @@ func scanTrivyVuln(imageTag string) (trivytypes.Report, error) {
 		log.Fatalf("Error unmashalling error %v", err)
 	}
 
-	fmt.Printf("Json parsed trivy %s", report.Metadata.ImageID)
-	fmt.Printf("Json parsed trivy %s", report.Results[0].Vulnerabilities[0].VulnerabilityID)
-
 	return report, err
 }
 
@@ -61,9 +57,6 @@ func scanGrypeVuln(imageTag string) (grypemodels.Document, error) {
 	if err != nil {
 		log.Fatalf("Error unmashalling error %v", err)
 	}
-
-	//fmt.Printf("Json parsed grype %s",  document.Matches[0].Vulnerability.ID)
-	//fmt.Printf("Json parsed grype %s",  document.Matches[0].RelatedVulnerabilities[0].Description)
 
 	return document, nil
 }
