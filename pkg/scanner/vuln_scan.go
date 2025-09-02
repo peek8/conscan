@@ -10,26 +10,22 @@ import (
 	"peek8.io/conscan/pkg/utils"
 )
 
-func ScanVuln(imageTag string) (*models.CMDVulnerabilityResult, error) {
-	tr, err := scanTrivyVuln(imageTag)
-	if err != nil {
-		return nil, err
-	}
+func ScanVuln(imageTag string) *models.VulnerabilityResult {
+	// scan with trivy
+	tr := scanTrivyVuln(imageTag)
 
-	gr, err := scanGrypeVuln(imageTag)
-	if err != nil {
-		return nil, err
-	}
+	// Scan with grype
+	gr := scanGrypeVuln(imageTag)
 
-	return &models.CMDVulnerabilityResult{
+	return &models.VulnerabilityResult{
 		TrivyResult: &tr,
 		GrypeResult: &gr,
-	}, nil
+	}
 }
 
-func scanTrivyVuln(imageTag string) (trivytypes.Report, error) {
+func scanTrivyVuln(imageTag string) trivytypes.Report {
 	// run the trivy scan
-	output, err, errStr := utils.ExecuteCommand("trivy", utils.TrivyVulnScanCmdArgs(imageTag)...)
+	output, err, errStr := utils.ExecuteCommand("trivy", trivyGeneralArgs(imageTag)...)
 
 	if err != nil {
 		log.Fatalf("Command execution failed: %v\nStderr: %s", err, errStr)
@@ -37,16 +33,14 @@ func scanTrivyVuln(imageTag string) (trivytypes.Report, error) {
 
 	var report trivytypes.Report
 	err = json.Unmarshal([]byte(output), &report)
-	if err != nil {
-		log.Fatalf("Error unmashalling error %v", err)
-	}
+	utils.ExitOnError(err)
 
-	return report, err
+	return report
 }
 
-func scanGrypeVuln(imageTag string) (grypemodels.Document, error) {
+func scanGrypeVuln(imageTag string) grypemodels.Document {
 	// run the gruype scan
-	output, err, errStr := utils.ExecuteCommand("grype", utils.GrypeVulnScanCmdArgs(imageTag)...)
+	output, err, errStr := utils.ExecuteCommand("grype", grypeVulnScanCmdArgs(imageTag)...)
 
 	if err != nil {
 		log.Fatalf("Command execution failed: %v\nStderr: %s", err, errStr)
@@ -54,9 +48,15 @@ func scanGrypeVuln(imageTag string) (grypemodels.Document, error) {
 
 	var document grypemodels.Document
 	err = json.Unmarshal([]byte(output), &document)
-	if err != nil {
-		log.Fatalf("Error unmashalling error %v", err)
-	}
+	utils.ExitOnError(err)
 
-	return document, nil
+	return document
+}
+
+func grypeVulnScanCmdArgs(imageTag string) []string {
+	return []string{imageTag, "-o", FormatJson}
+}
+
+func trivyGeneralArgs(imageTag string) []string {
+	return []string{"image", imageTag, "-f", FormatJson}
 }

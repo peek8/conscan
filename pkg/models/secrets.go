@@ -1,14 +1,5 @@
 package models
 
-import (
-	"strings"
-
-	trivyfanaltypes "github.com/aquasecurity/trivy/pkg/fanal/types"
-	trivytypes "github.com/aquasecurity/trivy/pkg/types"
-	"github.com/samber/lo"
-	"peek8.io/conscan/pkg/utils"
-)
-
 // Secrets related model
 type DetectedSecret struct {
 	Target    string `json:"Target"`
@@ -63,68 +54,18 @@ type DetectedPresSecret struct {
 	LocationType LocationType `json:"LocationType"`
 }
 
-func detectSecretLocationType(secret DetectedSecret, artifactName string) LocationType {
-	if secret.Target == artifactName {
+func (sec *DetectedSecret) DetectLocationType(artifactName string) LocationType {
+	if sec.Target == artifactName {
 		return LocationTypeEnvVar
 	}
 
 	return LocationTypeFileSystem
 }
 
-func ToPresSecrets(secrets []DetectedSecret, artifactName string) []DetectedPresSecret {
-	return lo.Map(secrets, func(s DetectedSecret, index int) DetectedPresSecret {
-		content := lo.Reduce(s.Code.Lines, func(agg string, line Line, index int) string {
-			return utils.EitherOr(len(line.Content) > 0, agg+"\n"+line.Content, agg+line.Content)
-		}, "")
-		locationType := detectSecretLocationType(s, artifactName)
+func (sec *DetectedSecret) DetermineDesc(artifactName string) string {
+	if sec.Target == artifactName {
+		return EnvVarSecretDescription
+	}
 
-		return DetectedPresSecret{
-			Target:       s.Target,
-			Category:     s.Category,
-			Severity:     s.Severity,
-			Title:        s.Title,
-			StartLine:    s.StartLine,
-			EndLine:      s.EndLine,
-			Content:      content,
-			Description:  utils.EitherOr(locationType == LocationTypeFileSystem, FileSystemSecretDescription, EnvVarSecretDescription),
-			LocationType: locationType,
-		}
-	})
-}
-
-func ExtractTrivyPresSecrets(res trivytypes.Result, artifactName string) []DetectedPresSecret {
-	return ToPresSecrets(ExtractTrivySecrets(res), artifactName)
-}
-
-func ExtractTrivySecrets(res trivytypes.Result) []DetectedSecret {
-	// Omit match=created by, this is possible duplicate entries
-	secrets := lo.Filter(res.Secrets, func(item trivytypes.DetectedSecret, index int) bool {
-		return !strings.Contains(item.Match, "created_by")
-	})
-
-	return lo.Map(secrets, func(trSec trivytypes.DetectedSecret, index int) DetectedSecret {
-		return DetectedSecret{
-			Target:    res.Target,
-			RuleID:    trSec.RuleID,
-			Category:  string(trSec.Category),
-			Severity:  trSec.Severity,
-			Title:     trSec.Title,
-			StartLine: trSec.StartLine,
-			EndLine:   trSec.EndLine,
-			Code: Code{
-				Lines: lo.Map(trSec.Code.Lines, func(trLine trivyfanaltypes.Line, index int) Line {
-					return Line{
-						Number:      trLine.Number,
-						Content:     trLine.Content,
-						IsCause:     trLine.IsCause,
-						Annotation:  trLine.Annotation,
-						Truncated:   trLine.Truncated,
-						Highlighted: trLine.Highlighted,
-						FirstCause:  trLine.FirstCause,
-						LastCause:   trLine.LastCause,
-					}
-				}),
-			},
-		}
-	})
+	return FileSystemSecretDescription
 }

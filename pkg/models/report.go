@@ -1,3 +1,16 @@
+/*
+ * Copyright (c) 2025 peek8.io
+ *
+ * Created Date: Wednesday, August 20th 2025, 3:28:54 pm
+ * Author: Md. Asraful Haque
+ *
+ * -----
+ * Last Modified: Tuesday, 2nd September 2025 5:30:01 pm
+ * Modified By: Md. Asraful Haque
+ * -----
+ */
+
+// Package models provide the struct for the data
 package models
 
 import (
