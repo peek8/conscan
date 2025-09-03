@@ -314,7 +314,25 @@ func (ra *ReportAggregrator) AggreagateReport() *models.ScanReport {
 	sr.Secrets = ra.sa.ExtractSecrets()
 	sr.SBOMs = ra.sba.AggregateSboms()
 
+	sr.VulnerabilitySummary = ra.generateVulnerabilitySummary(sr.Vulnerabilities)
+
 	return sr
+}
+
+func (ra *ReportAggregrator) generateVulnerabilitySummary(vulns []models.DetectedVulnerability) *models.VulnerabilitySummary {
+	getCountFunc := func(severity string) func(v models.DetectedVulnerability) bool {
+		return func(v models.DetectedVulnerability) bool {
+			return strings.ToUpper(v.Severity) == severity
+		}
+	}
+
+	return &models.VulnerabilitySummary{
+		CriticalCount: lo.CountBy(vulns, getCountFunc(models.SeverityNameCritical)),
+		HighCount:     lo.CountBy(vulns, getCountFunc(models.SeverityNameHigh)),
+		MediumCount:   lo.CountBy(vulns, getCountFunc(models.SeverityNameMedium)),
+		LowCount:      lo.CountBy(vulns, getCountFunc(models.SeverityNameLow)),
+		UnknowsCount:  lo.CountBy(vulns, getCountFunc(models.SeverityNameUnknown)),
+	}
 }
 
 func NewReportAggregator(result *models.VulnerabilityResult) *ReportAggregrator {

@@ -24,10 +24,11 @@ type ScanReport struct {
 	ArtifactName string    `json:",omitempty"`
 	ArtifactType string    `json:",omitempty"`
 
-	Metadata        ImageMetadata           `json:"metadata,omitzero"`
-	Vulnerabilities []DetectedVulnerability `json:"vulnerabilities,omitempty"`
-	Secrets         []DetectedPresSecret    `json:"secrets,omitempty"`
-	SBOMs           *spdxv23.Document       `json:"sboms,omitzero"`
+	Metadata             ImageMetadata           `json:"metadata,omitzero"`
+	Vulnerabilities      []DetectedVulnerability `json:"vulnerabilities,omitempty"`
+	VulnerabilitySummary *VulnerabilitySummary   `json:"vulnerabilitySummary,omitempty"`
+	Secrets              []DetectedPresSecret    `json:"secrets,omitempty"`
+	SBOMs                *spdxv23.Document       `json:"sboms,omitzero"`
 }
 
 type ImageMetadata struct {
@@ -57,4 +58,12 @@ type ConfigFile struct {
 	Author       string    `json:"author,omitempty"`
 	Container    string    `json:"container,omitempty"`
 	Created      time.Time `json:"created,omitempty"`
+}
+
+type VulnerabilitySummary struct {
+	CriticalCount int `json:"criticalCount"`
+	HighCount     int `json:"highCount"`
+	MediumCount   int `json:"mediumCount"`
+	LowCount      int `json:"lowCount"`
+	UnknowsCount  int `json:"unknowsCount"`
 }

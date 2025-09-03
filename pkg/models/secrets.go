@@ -1,6 +1,6 @@
 package models
 
-// Secrets related model
+// DetectedSecret Secrets related model
 type DetectedSecret struct {
 	Target    string `json:"Target"`
 	RuleID    string `json:"-"`
@@ -39,7 +39,6 @@ const (
 	EnvVarSecretDescription     = "Secret(s) found in Environment Variables"
 )
 
-// Secrets related model
 type DetectedPresSecret struct {
 	Target    string `json:"Target"`
 	Category  string `json:"Category"`
