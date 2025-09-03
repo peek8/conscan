@@ -1,7 +1,12 @@
 /*
-Copyright © 2025 peek8.io
-*/
+ * Copyright (c) 2025 peek8.io
+ *
+ * Created Date: Tuesday, August 19th 2025, 11:30:40 am
+ * Author: Md. Asraful Haque
+ *
+ */
 
+// Package cmd contains all the commands and subcommands to scan the image
 package cmd
 
 import (

@@ -17,6 +17,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+
+	"peek8.io/conscan/pkg/models"
 )
 
 // Trivy Scanner Flag
@@ -33,7 +35,7 @@ const (
 	FormatTable = "table"
 )
 
-func ScanImage(imageTag string) {
+func ScanImage(imageTag string, opts models.ScanOptions) {
 	// scan vulnerability that also include secrets from trivy
 	result := ScanVuln(imageTag)
 

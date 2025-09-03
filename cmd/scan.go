@@ -1,17 +1,27 @@
 /*
-Copyright © 2025 peek8.io
-*/
+ * Copyright (c) 2025 peek8.io
+ *
+ * Created Date: Tuesday, August 19th 2025, 11:38:34 am
+ * Author: Md. Asraful Haque
+ *
+ */
+
 package cmd
 
 import (
 	"fmt"
+	"log"
 	"os"
 
 	"github.com/spf13/cobra"
+	"peek8.io/conscan/pkg/models"
 	"peek8.io/conscan/pkg/scanner"
 )
 
 var scanUsage = "use conscan scan imageTag"
+
+var formatFlagVar string
+var outputFlagVar string
 
 // scanCmd represents the scan command
 var scanCmd = &cobra.Command{
@@ -24,9 +34,17 @@ var scanCmd = &cobra.Command{
 			fmt.Println(scanUsage)
 			os.Exit(1)
 		}
+		opts := models.ScanOptions{
+			Format:     models.OutputFormat(formatFlagVar),
+			OutputFile: outputFlagVar,
+		}
 
-		fmt.Printf("Scanning Image %s...", args[0])
-		scanner.ScanImage(args[0])
+		msg, ok := opts.Validate()
+		if !ok {
+			log.Fatalf("%s", msg)
+		}
+
+		scanner.ScanImage(args[0], opts)
 	},
 }
 
@@ -34,12 +52,6 @@ func init() {
 	rootCmd.AddCommand(scanCmd)
 
 	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// vulnCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// vulnCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	scanCmd.PersistentFlags().StringVarP(&formatFlagVar, "format", "f", "table", "Format of the scanning report")
+	scanCmd.PersistentFlags().StringVarP(&outputFlagVar, "output", "o", "", "Output File name (optional)")
 }
