@@ -15,6 +15,8 @@ package models
 
 import (
 	"time"
+
+	spdxv23 "github.com/spdx/tools-golang/spdx/v2/v2_3"
 )
 
 type ScanReport struct {
@@ -22,9 +24,10 @@ type ScanReport struct {
 	ArtifactName string    `json:",omitempty"`
 	ArtifactType string    `json:",omitempty"`
 
-	Metadata        ImageMetadata `json:",omitzero"`
-	Vulnerabilities []DetectedVulnerability
-	Secrets         []DetectedPresSecret
+	Metadata        ImageMetadata           `json:"metadata,omitzero"`
+	Vulnerabilities []DetectedVulnerability `json:"vulnerabilities,omitempty"`
+	Secrets         []DetectedPresSecret    `json:"secrets,omitempty"`
+	SBOMs           *spdxv23.Document       `json:"sboms,omitzero"`
 }
 
 type ImageMetadata struct {

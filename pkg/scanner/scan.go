@@ -34,7 +34,11 @@ const (
 )
 
 func ScanImage(imageTag string) {
+	// scan vulnerability that also include secrets from trivy
 	result := ScanVuln(imageTag)
+
+	// scan sboms
+	result.SyftySBOMs = SyftScanForSboms(imageTag)
 
 	ra := NewReportAggregator(result)
 	report := ra.AggreagateReport()

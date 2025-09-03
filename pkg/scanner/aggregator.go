@@ -21,6 +21,7 @@ import (
 	trivyfanaltypes "github.com/aquasecurity/trivy/pkg/fanal/types"
 	trivytypes "github.com/aquasecurity/trivy/pkg/types"
 	"github.com/samber/lo"
+	spdxv23 "github.com/spdx/tools-golang/spdx/v2/v2_3"
 
 	"peek8.io/conscan/pkg/grypemodels"
 	"peek8.io/conscan/pkg/models"
@@ -254,11 +255,31 @@ func (sg *SecretsAggregrator) ExtractTrivySecretsFromResult(res trivytypes.Resul
 	})
 }
 
+type SbomsAggregator struct {
+	SyftySBOMs *spdxv23.Document
+}
+
+func (sa *SbomsAggregator) AggregateSboms() *spdxv23.Document {
+	if sa.SyftySBOMs == nil {
+		return nil
+	}
+
+	// copy the struct
+	res := *sa.SyftySBOMs
+
+	// omit relationships and files
+	res.Relationships = []*spdxv23.Relationship{}
+	res.Files = []*spdxv23.File{}
+
+	return &res
+}
+
 type ReportAggregrator struct {
 	Results *models.VulnerabilityResult
 
-	vg *VulnerabilitiesAggregrator
-	sg *SecretsAggregrator
+	va  *VulnerabilitiesAggregrator
+	sa  *SecretsAggregrator
+	sba *SbomsAggregator
 }
 
 func (ra *ReportAggregrator) newReport() *models.ScanReport {
@@ -289,8 +310,9 @@ func (ra *ReportAggregrator) newReport() *models.ScanReport {
 
 func (ra *ReportAggregrator) AggreagateReport() *models.ScanReport {
 	sr := ra.newReport()
-	sr.Vulnerabilities = ra.vg.AggregateVulnerabilities()
-	sr.Secrets = ra.sg.ExtractSecrets()
+	sr.Vulnerabilities = ra.va.AggregateVulnerabilities()
+	sr.Secrets = ra.sa.ExtractSecrets()
+	sr.SBOMs = ra.sba.AggregateSboms()
 
 	return sr
 }
@@ -298,7 +320,8 @@ func (ra *ReportAggregrator) AggreagateReport() *models.ScanReport {
 func NewReportAggregator(result *models.VulnerabilityResult) *ReportAggregrator {
 	return &ReportAggregrator{
 		Results: result,
-		vg:      &VulnerabilitiesAggregrator{Result: result},
-		sg:      &SecretsAggregrator{TrivyResult: result.TrivyResult},
+		va:      &VulnerabilitiesAggregrator{Result: result},
+		sa:      &SecretsAggregrator{TrivyResult: result.TrivyResult},
+		sba:     &SbomsAggregator{SyftySBOMs: result.SyftySBOMs},
 	}
 }
