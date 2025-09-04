@@ -13,11 +13,21 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"strings"
 
 	"github.com/fatih/color"
 	"github.com/jedib0t/go-pretty/v6/table"
 	"peek8.io/conscan/pkg/models"
+	"peek8.io/conscan/pkg/utils"
 )
+
+var severityColors = map[string]color.Attribute{
+	models.SeverityNameCritical: color.FgRed,
+	models.SeverityNameHigh:     color.FgHiMagenta,
+	models.SeverityNameMedium:   color.FgYellow,
+	models.SeverityNameLow:      color.FgGreen,
+	models.SeverityNameUnknown:  color.FgCyan,
+}
 
 type TableWriter struct {
 	Output io.Writer
@@ -79,22 +89,16 @@ func (vsr VulnerabilitySummaryRenderer) Render(report models.ScanReport) error {
 	addHeader(vsr.buf, "Vulnerability Summary:")
 	t := newTable(vsr.buf)
 
-	critical := getColoredBold(models.SeverityNameCritical, color.FgRed)
-	high := getColoredBold(models.SeverityNameHigh, color.FgHiMagenta)
-	medium := getColoredBold(models.SeverityNameMedium, color.FgYellow)
-	low := getColoredBold(models.SeverityNameLow, color.FgGreen)
-	unknown := getColoredBold(models.SeverityNameUnknown, color.FgCyan)
-
 	t.AppendHeader(table.Row{"Vulnerability Severity", "Count"})
-	t.AppendRow(table.Row{critical, report.VulnerabilitySummary.CriticalCount})
+	t.AppendRow(table.Row{getSeverityColoredText(models.SeverityNameCritical), report.VulnerabilitySummary.CriticalCount})
 	t.AppendSeparator()
-	t.AppendRow(table.Row{high, report.VulnerabilitySummary.HighCount})
+	t.AppendRow(table.Row{getSeverityColoredText(models.SeverityNameHigh), report.VulnerabilitySummary.HighCount})
 	t.AppendSeparator()
-	t.AppendRow(table.Row{medium, report.VulnerabilitySummary.MediumCount})
+	t.AppendRow(table.Row{getSeverityColoredText(models.SeverityNameMedium), report.VulnerabilitySummary.MediumCount})
 	t.AppendSeparator()
-	t.AppendRow(table.Row{low, report.VulnerabilitySummary.LowCount})
+	t.AppendRow(table.Row{getSeverityColoredText(models.SeverityNameLow), report.VulnerabilitySummary.LowCount})
 	t.AppendSeparator()
-	t.AppendRow(table.Row{unknown, report.VulnerabilitySummary.UnknowsCount})
+	t.AppendRow(table.Row{getSeverityColoredText(models.SeverityNameUnknown), report.VulnerabilitySummary.UnknowsCount})
 	t.AppendSeparator()
 
 	t.Render()
@@ -107,13 +111,13 @@ type VulnerabilitiesRenderer struct {
 }
 
 func (vr VulnerabilitiesRenderer) Render(report models.ScanReport) error {
-	addHeader(vr.buf, "Vulnerabilities")
+	addHeader(vr.buf, "Vulnerabilities:")
 
 	t := newTable(vr.buf)
 	t.AppendHeader(table.Row{"Library", "Vulnerability", "Severity", "Installed Version", "Fixed Version", "Description"})
 	for _, vuln := range report.Vulnerabilities {
 		t.AppendRow(table.Row{
-			vuln.PkgName, vuln.VulnerabilityID, vuln.Severity, vuln.InstalledVersion, vuln.FixedVersion, vuln.Title,
+			vuln.PkgName, vuln.VulnerabilityID, getSeverityColoredText(vuln.Severity), getColored(vuln.InstalledVersion, color.FgMagenta), getColored(vuln.FixedVersion, color.FgGreen), vr.getVulnerabilityDescription(vuln),
 		})
 		t.AppendSeparator()
 	}
@@ -121,6 +125,14 @@ func (vr VulnerabilitiesRenderer) Render(report models.ScanReport) error {
 	t.Render()
 
 	return nil
+}
+
+func (vr VulnerabilitiesRenderer) getVulnerabilityDescription(vuln models.DetectedVulnerability) string {
+	desc := utils.EitherOr(len(vuln.Title) > 0, vuln.Title, vuln.Description)
+
+	url := getColored(fmt.Sprintf("https://www.cve.org/CVERecord?id=%s", vuln.VulnerabilityID), color.FgBlue)
+
+	return fmt.Sprintf("%s....\n%s", wrapText(desc, 100), url)
 }
 
 type SecretsRenderer struct {
@@ -157,6 +169,12 @@ func newTable(out io.Writer) table.Writer {
 	return t
 }
 
+func getSeverityColoredText(severity string) string {
+	severity = strings.ToUpper(severity)
+
+	return getColoredBold(severity, severityColors[severity])
+}
+
 func getColored(text string, colors ...color.Attribute) string {
 	col := color.New(colors...)
 	return col.Sprint(text)
@@ -174,5 +192,25 @@ func getHeader1(text string) string {
 func addHeader(buf io.Writer, text string) {
 	header := getHeader1(text)
 
-	fmt.Fprintln(buf, header)
+	fmt.Fprintln(buf, "\n"+header)
+}
+
+func wrapText(text string, lineLen int) string {
+	if len(text) <= lineLen {
+		return text
+	}
+
+	var b strings.Builder
+	for i := 0; i < len(text); i += lineLen {
+		end := i + lineLen
+		if end > len(text) {
+			end = len(text)
+		}
+		b.WriteString(text[i:end])
+		if end < len(text) {
+			b.WriteString("\n")
+		}
+	}
+
+	return b.String()
 }
