@@ -208,13 +208,17 @@ func (sg *SecretsAggregrator) ToPresSecrets(secrets []models.DetectedSecret, art
 		}, "")
 		locationType := s.DetectLocationType(artifactName)
 
+		lineNumbers := lo.Map(s.Code.Lines, func(line models.Line, index int) int {
+			return line.Number
+		})
+
 		return models.DetectedPresSecret{
 			Target:       s.Target,
 			Category:     s.Category,
 			Severity:     s.Severity,
 			Title:        s.Title,
-			StartLine:    s.StartLine,
-			EndLine:      s.EndLine,
+			StartLine:    lo.Min(lineNumbers),
+			EndLine:      lo.Max(lineNumbers),
 			Content:      content,
 			Description:  s.DetermineDesc(artifactName),
 			LocationType: locationType,

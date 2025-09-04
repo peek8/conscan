@@ -43,6 +43,7 @@ func (tw TableWriter) Write(_ context.Context, report models.ScanReport) error {
 		HeaderRenderer{buf: buf},
 		VulnerabilitySummaryRenderer{buf: buf},
 		VulnerabilitiesRenderer{buf: buf},
+		SecretsRenderer{buf: buf},
 		SBOMRenderer{buf: buf},
 	}
 
@@ -141,11 +142,34 @@ type SecretsRenderer struct {
 }
 
 func (sr SecretsRenderer) Render(report models.ScanReport) error {
+	addHeader(sr.buf, "Exposed Secrets:")
+	addInfo(sr.buf, fmt.Sprintf("Total Exposed Secrets: %d", len(report.Secrets)))
+
+	// If there are no secrets no need to show the tables
+	if len(report.Secrets) == 0 {
+		return nil
+	}
+
 	t := newTable(sr.buf)
+	t.AppendHeader(table.Row{"Location", "Title", "Category", "Content", "Severity", "Description"})
+	for _, sec := range report.Secrets {
+		t.AppendRow(table.Row{
+			sr.getLocation(sec), sec.Title, sec.Category, sec.Content, getSeverityColoredText(sec.Severity), sec.Description,
+		})
+		t.AppendSeparator()
+	}
 
 	t.Render()
 
 	return nil
+}
+
+func (sr SecretsRenderer) getLocation(sec models.DetectedPresSecret) string {
+	if sec.LocationType == models.LocationTypeFileSystem {
+		return fmt.Sprintf("%s:%d:%d", sec.Target, sec.StartLine, sec.EndLine)
+	}
+
+	return "Environment Variables"
 }
 
 type SBOMRenderer struct {
@@ -154,6 +178,7 @@ type SBOMRenderer struct {
 
 func (sbr SBOMRenderer) Render(report models.ScanReport) error {
 	addHeader(sbr.buf, "Installed Packages/Software: ")
+	addInfo(sbr.buf, fmt.Sprintf("Total Packages found: %d", len(report.SBOMs.Packages)))
 
 	t := newTable(sbr.buf)
 
@@ -204,6 +229,12 @@ func addHeader(buf io.Writer, text string) {
 	header := getHeader1(text)
 
 	fmt.Fprintln(buf, "\n"+header)
+}
+
+func addInfo(buf io.Writer, text string) {
+	info := getColored(text, color.FgCyan)
+
+	fmt.Fprintln(buf, "\n"+info)
 }
 
 func wrapText(text string, lineLen int) string {
