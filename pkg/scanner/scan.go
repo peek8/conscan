@@ -14,11 +14,11 @@
 package scanner
 
 import (
-	"encoding/json"
-	"fmt"
+	"context"
 	"log"
 
 	"peek8.io/conscan/pkg/models"
+	"peek8.io/conscan/pkg/report"
 )
 
 // Trivy Scanner Flag
@@ -43,12 +43,11 @@ func ScanImage(imageTag string, opts models.ScanOptions) {
 	result.SyftySBOMs = SyftScanForSboms(imageTag)
 
 	ra := NewReportAggregator(result)
-	report := ra.AggreagateReport()
+	agReport := ra.AggreagateReport()
 
-	out, err := json.MarshalIndent(report, "", "	")
+	err := report.Write(context.Background(), *agReport, opts)
+
 	if err != nil {
-		log.Fatalf("Error occurred while Converting reports to json %v", err)
+		log.Fatalf("Error occurred while Writing reports: %v", err)
 	}
-
-	fmt.Println(string(out))
 }

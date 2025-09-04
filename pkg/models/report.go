@@ -61,6 +61,7 @@ type ConfigFile struct {
 }
 
 type VulnerabilitySummary struct {
+	TotalCount    int `json:"totalCount"`
 	CriticalCount int `json:"criticalCount"`
 	HighCount     int `json:"highCount"`
 	MediumCount   int `json:"mediumCount"`

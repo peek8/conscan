@@ -327,6 +327,7 @@ func (ra *ReportAggregrator) generateVulnerabilitySummary(vulns []models.Detecte
 	}
 
 	return &models.VulnerabilitySummary{
+		TotalCount:    len(vulns),
 		CriticalCount: lo.CountBy(vulns, getCountFunc(models.SeverityNameCritical)),
 		HighCount:     lo.CountBy(vulns, getCountFunc(models.SeverityNameHigh)),
 		MediumCount:   lo.CountBy(vulns, getCountFunc(models.SeverityNameMedium)),
