@@ -43,6 +43,7 @@ func (tw TableWriter) Write(_ context.Context, report models.ScanReport) error {
 		HeaderRenderer{buf: buf},
 		VulnerabilitySummaryRenderer{buf: buf},
 		VulnerabilitiesRenderer{buf: buf},
+		SBOMRenderer{buf: buf},
 	}
 
 	for _, renderer := range renderers {
@@ -152,7 +153,17 @@ type SBOMRenderer struct {
 }
 
 func (sbr SBOMRenderer) Render(report models.ScanReport) error {
+	addHeader(sbr.buf, "Installed Packages/Software: ")
+
 	t := newTable(sbr.buf)
+
+	t.AppendHeader(table.Row{"Name", "Version", "License", "Description"})
+	for _, pkg := range report.SBOMs.Packages {
+		t.AppendRow(table.Row{
+			pkg.PackageName, pkg.PackageVersion, pkg.PackageLicenseDeclared, wrapText(pkg.PackageDescription, 100),
+		})
+		t.AppendSeparator()
+	}
 
 	t.Render()
 
@@ -186,7 +197,7 @@ func getColoredBold(text string, colors ...color.Attribute) string {
 }
 
 func getHeader1(text string) string {
-	return getColored(text, color.Bold, color.Underline, color.FgHiCyan)
+	return getColored(strings.ToUpper(text), color.Bold, color.Underline, color.FgHiYellow)
 }
 
 func addHeader(buf io.Writer, text string) {
