@@ -44,6 +44,8 @@ func Write(ctx context.Context, report models.ScanReport, option models.ScanOpti
 		writer = JsonWriter{Output: output}
 	case models.FormatTable:
 		writer = TableWriter{Output: output}
+	case models.FormatHtml:
+		writer = HtmlWriter{Output: output}
 	default:
 		return xerrors.Errorf("unknown format: %v", option.Format)
 	}

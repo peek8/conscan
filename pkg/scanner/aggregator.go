@@ -161,20 +161,22 @@ func (vg *VulnerabilitiesAggregrator) normalizeGripyVulnerabilities() []models.D
 
 		return ""
 	}
+
 	return lo.Map(vg.Result.GrypeResult.Matches, func(m grypemodels.Match, index int) models.DetectedVulnerability {
 		return models.DetectedVulnerability{
 			VulnerabilityID:  m.Vulnerability.ID,
 			PkgID:            m.Artifact.Name + "@" + m.Artifact.Version,
 			PkgName:          m.Artifact.Name,
 			InstalledVersion: m.Artifact.Version,
-			FixedVersion:     utils.EitherOrFunc(len(m.Vulnerability.Fix.Versions) > 0, func() string { return m.Vulnerability.Fix.Versions[0] }, ""),
+			FixedVersion:     lo.FirstOr(m.Vulnerability.Fix.Versions, ""),
 			Status:           m.Vulnerability.Fix.State,
 			Title:            getTitle(m),
 			Description:      utils.EitherOrFunc(len(m.RelatedVulnerabilities) > 0, func() string { return m.RelatedVulnerabilities[0].Description }, m.Vulnerability.Description),
 			Severity:         m.Vulnerability.Severity,
 			//CweIDs: tv.CweIDs,
-			CvssVector: m.Vulnerability.Cvss[0].Vector,
-			CvssScore:  m.Vulnerability.Cvss[0].Metrics.BaseScore,
+
+			CvssVector: m.Vulnerability.GetCVSSVector(),
+			CvssScore:  m.Vulnerability.GetCVSSScore(),
 			References: []string{m.Vulnerability.DataSource},
 			//PublishedDate: m.PublishedDate,
 			//LastModifiedDate: m.LastModifiedDate,
@@ -294,7 +296,8 @@ func (ra *ReportAggregrator) newReport() *models.ScanReport {
 		ArtifactName: tr.ArtifactName,
 		ArtifactType: string(tr.ArtifactType),
 		Metadata: models.ImageMetadata{
-			Size: tr.Metadata.Size,
+			Size:    tr.Metadata.Size,
+			SizeStr: utils.HumanReadableSize(tr.Metadata.Size),
 			OS: models.OS{
 				Name:   tr.Metadata.OS.Name,
 				Family: string(tr.Metadata.OS.Family),
@@ -304,6 +307,7 @@ func (ra *ReportAggregrator) newReport() *models.ScanReport {
 			RepoDigests: tr.Metadata.RepoDigests,
 			ImageConfig: models.ConfigFile{
 				Architecture: tr.Metadata.ImageConfig.Architecture,
+				OS:           tr.Metadata.ImageConfig.OS,
 				Author:       tr.Metadata.ImageConfig.Author,
 				Container:    tr.Metadata.ImageConfig.Container,
 				Created:      tr.Metadata.ImageConfig.Created.Time,

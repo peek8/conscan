@@ -1,0 +1,1186 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>ConScan Scan Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            /*background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);*/
+            color: #333;
+            line-height: 1.4;
+            margin: 0;
+            padding: 10px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 10px;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            text-align: center;
+            /*box-shadow: 0 8px 25px rgba(37, 99, 235, 0.4);
+            border: 2px solid rgba(255, 255, 255, 0.2);*/
+        }
+
+        .header h1 {
+            font-size: 1.8em;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+
+        .header p {
+            font-size: 1em;
+            opacity: 0.9;
+            margin: 0;
+        }
+
+        .image-info {
+            /*background: linear-gradient(135deg, #667eea, #c2a0e4, #d387dc);*/
+            background: linear-gradient(135deg, #5c84e9, #9798de, #a588e4);
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 15px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+            /*border: 2px solid rgba(255, 255, 255, 0.3);*/
+            backdrop-filter: blur(10px);
+            color: white;
+            
+        }
+
+        .image-info h2 {
+            /*color: #1f2937;*/
+            margin-bottom: 10px;
+            font-size: 1.2em;
+            font-weight: 600;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+        }
+
+        .info-item {
+            background: linear-gradient(to top, #804ed2 0%, #5a84eb 100%);
+            /*background: linear-gradient(135deg, #dbeafe, #bfdbfe, #93c5fd);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);*/
+            color: white;
+            padding: 10px;
+            border-radius: 8px;
+            border-left: 4px solid #2b092d;
+            transition: transform 0.3s ease;
+        }
+
+        .info-item:hover {
+            transform: translateX(5px);
+        }
+
+        .info-label {
+            font-weight: bold;
+            /*color: #4a5568;*/
+        }
+
+        .info-value {
+            /*color: #2d3748;*/
+            margin-top: 5px;
+        }
+
+        .section {
+            background: rgba(255, 255, 255, 0.95);
+            margin-bottom: 15px;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            backdrop-filter: blur(10px);
+        }
+
+        .section-header {
+            background: linear-gradient(135deg, #667eea, #764ba2, #f093fb);
+            color: white;
+            padding: 12px 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .section-title {
+            font-size: 1.1em;
+            font-weight: 600;
+        }
+
+        .badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8em;
+            font-weight: 600;
+        }
+
+        .badge-critical { background: #ff1744; color: white; box-shadow: 0 4px 15px rgba(255, 23, 68, 0.4); }
+        .badge-high { background: #ff6d00; color: white; box-shadow: 0 4px 15px rgba(255, 109, 0, 0.4); }
+        .badge-medium { background: #ffc400; color: #333; box-shadow: 0 4px 15px rgba(255, 196, 0, 0.4); }
+        .badge-low { background: #00e676; color: white; box-shadow: 0 4px 15px rgba(0, 230, 118, 0.4); }
+        .badge-info { background: #2979ff; color: white; box-shadow: 0 4px 15px rgba(41, 121, 255, 0.4); }
+
+        .section-content {
+            padding: 10px;
+        }
+
+        .vulnerability-item, .package-item, .secret-item, .violation-item {
+            border: 2px solid rgba(255, 105, 180, 0.2);
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 8px;
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(5px);
+            transition: all 0.3s ease;
+        }
+
+        .vulnerability-item:hover, .package-item:hover, .secret-item:hover, .violation-item:hover {
+            box-shadow: 0 8px 25px rgba(255, 105, 180, 0.3);
+            border-color: rgba(255, 105, 180, 0.5);
+            transform: translateY(-2px);
+        }
+
+        .vuln-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .vuln-title {
+            font-weight: 600;
+            color: #1f2937;
+            flex: 1;
+            font-size: 0.9em;
+        }
+
+        .vuln-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 8px;
+            margin-top: 5px;
+        }
+
+        .detail-item {
+            display: flex;
+            justify-content: flex-start;
+            gap: 10px;
+            font-size: 0.85em;
+        }
+
+        .secret-item .detail-item.location-item {
+            flex-direction: column;
+            gap: 3px;
+        }
+
+        .secret-item .detail-item.location-item .detail-value {
+            font-family: monospace;
+            background: #f3f4f6;
+            padding: 4px 6px;
+            border-radius: 4px;
+            font-size: 0.8em;
+            color: #6b7280;
+            word-break: break-all;
+        }
+
+        .detail-label {
+            font-weight: 600;
+            color: #ff1744;
+            min-width: 100px;
+        }
+
+        .detail-value {
+            color: #2d3748;
+        }
+
+        .package-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+
+        .package-name {
+            font-weight: 600;
+            color: #1f2937;
+            font-size: 0.9em;
+        }
+
+        .package-version {
+            color: #2979ff;
+            font-weight: 600;
+            font-size: 0.85em;
+            text-shadow: 0 1px 2px rgba(41, 121, 255, 0.2);
+        }
+
+        .secret-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+
+        .secret-type {
+            font-weight: 600;
+            color: #ff1744;
+            font-size: 0.9em;
+            text-shadow: 0 1px 2px rgba(255, 23, 68, 0.2);
+        }
+
+        .secret-location {
+            color: #6b7280;
+            font-family: monospace;
+            background: #f3f4f6;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-size: 0.8em;
+        }
+
+        .violation-header {
+            margin-bottom: 5px;
+        }
+
+        .violation-rule {
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 3px;
+            font-size: 0.9em;
+        }
+
+        .violation-description {
+            color: #6b7280;
+            margin-bottom: 5px;
+            font-size: 0.85em;
+        }
+
+        .summary-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .summary-card {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 15px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            backdrop-filter: blur(10px);
+            transition: transform 0.3s ease;
+        }
+
+        .summary-card:hover {
+            transform: translateY(-5px) scale(1.02);
+        }
+
+        .summary-card.critical-card {
+            background: linear-gradient(135deg, #ff1744, #ff5722);
+            color: white;
+        }
+
+        .summary-card.high-card {
+            background: linear-gradient(135deg, #ff6d00, #ff9800);
+            color: white;
+        }
+
+        .summary-card.medium-card {
+            background: linear-gradient(135deg, #ffc400, #ffeb3b);
+            color: #333;
+        }
+
+        .summary-card.exposed-secrets {
+            background-color: #ec4899;
+            color: white;
+        }
+
+        .summary-card.cis-violation{
+            background-color: #e3177c;
+            color: white;
+        }
+
+        
+
+        .summary-card.low-card {
+            background: linear-gradient(135deg, #00e676, #4caf50);
+            color: white;
+        }
+
+        .summary-number {
+            font-size: 1.8em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .summary-label {
+            color: #4a5568;
+            font-weight: 500;
+        }
+
+        .summary-card.critical-card .summary-number,
+        .summary-card.critical-card .summary-label { color: white; }
+        .summary-card.high-card .summary-number,
+        .summary-card.high-card .summary-label { color: white; }
+        .summary-card.medium-card .summary-number,
+        .summary-card.medium-card .summary-label { color: #333; }
+        .summary-card.exposed-secrets .summary-label { color: white; }
+        .summary-card.cis-violation .summary-label { color: white; }
+        .summary-card.low-card .summary-number,
+        .summary-card.low-card .summary-label { color: white; }
+
+        .scrollable-container {
+            max-height: 400px;
+            overflow-y: auto;
+            border: 2px solid rgba(255, 105, 180, 0.3);
+            border-radius: 8px;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(255, 245, 245, 0.9));
+            padding: 10px;
+        }
+
+        .scrollable-container::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .scrollable-container::-webkit-scrollbar-track {
+            background: #f3f4f6;
+            border-radius: 3px;
+        }
+
+        .scrollable-container::-webkit-scrollbar-thumb {
+            background: #6b7280;
+            border-radius: 3px;
+        }
+
+        .scrollable-container::-webkit-scrollbar-thumb:hover {
+            background: #4b5563;
+        }
+
+        @media (max-width: 768px) {
+            .container { padding: 5px; }
+            .header { padding: 15px; }
+            .header h1 { font-size: 1.5em; }
+            .vuln-header { flex-direction: column; align-items: flex-start; }
+            .summary-cards { grid-template-columns: repeat(2, 1fr); }
+            .info-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>ConScan Image Scan Dashboard</h1>
+            <p>ConScan, A tool from Peek8.i0, Scans everything in an Image !</p>
+        </div>
+
+        <div class="image-info">
+            <h2>Image Information</h2>
+            <div class="info-grid">
+                <div class="info-item">
+                    <div class="info-label">Image Name</div>
+                    <div class="info-value">{{.ArtifactName}}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Base OS</div>
+                    <div class="info-value">{{.Metadata.OS.Family}} {{.Metadata.OS.Name}}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Architecture</div>
+                    <div class="info-value">{{.Metadata.ImageConfig.OS}}/{{.Metadata.ImageConfig.Architecture}}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Size</div>
+                    <div class="info-value">{{.Metadata.SizeStr}}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Scan Date</div>
+                    <div class="info-value">2024-03-15 14:30:22 UTC</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Scanner Version</div>
+                    <div class="info-value">ConScan v0.01.1</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="summary-cards">
+            <div class="summary-card critical-card">
+                <div class="summary-number">3</div>
+                <div class="summary-label">Critical Vulnerabilities</div>
+            </div>
+            <div class="summary-card high-card">
+                <div class="summary-number">7</div>
+                <div class="summary-label">High Vulnerabilities</div>
+            </div>
+            <div class="summary-card exposed-secrets">
+                <div class="summary-number">12</div>
+                <div class="summary-label">Exposed Secrets</div>
+            </div>
+            <div class="summary-card low-card">
+                <div class="summary-number">8</div>
+                <div class="summary-label">Installed Packages</div>
+            </div>
+            <div class="summary-card cis-violation">
+                <div class="summary-number">8</div>
+                <div class="summary-label">CIS Violations</div>
+            </div>
+            
+        </div>
+
+        <div class="section">
+            <div class="section-header">
+                <div class="section-title">Package Vulnerabilities</div>
+                <div class="badge badge-critical">30 Total</div>
+            </div>
+            <div class="section-content">
+                <div class="scrollable-container">
+                <div class="vulnerability-item">
+                    <div class="vuln-header">
+                        <div class="vuln-title">CVE-2023-4807: OpenSSL Denial of Service</div>
+                        <div class="badge badge-critical">Critical</div>
+                    </div>
+                    <div class="vuln-details">
+                        <div class="detail-item">
+                            <span class="detail-label">Package:</span>
+                            <span class="detail-value">openssl</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Installed Version:</span>
+                            <span class="detail-value">1.1.1n-r0</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Fixed Version:</span>
+                            <span class="detail-value">1.1.1s-r0</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">CVSS Score:</span>
+                            <span class="detail-value">9.8</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="vulnerability-item">
+                    <div class="vuln-header">
+                        <div class="vuln-title">CVE-2023-1255: AES-OCB implementation flaw</div>
+                        <div class="badge badge-high">High</div>
+                    </div>
+                    <div class="vuln-details">
+                        <div class="detail-item">
+                            <span class="detail-label">Package:</span>
+                            <span class="detail-value">openssl</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Installed Version:</span>
+                            <span class="detail-value">1.1.1n-r0</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Fixed Version:</span>
+                            <span class="detail-value">1.1.1s-r0</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">CVSS Score:</span>
+                            <span class="detail-value">7.5</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="vulnerability-item">
+                    <div class="vuln-header">
+                        <div class="vuln-title">CVE-2023-0464: Certificate policy check bypass</div>
+                        <div class="badge badge-medium">Medium</div>
+                    </div>
+                    <div class="vuln-details">
+                        <div class="detail-item">
+                            <span class="detail-label">Package:</span>
+                            <span class="detail-value">libssl1.1</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Installed Version:</span>
+                            <span class="detail-value">1.1.1n-r0</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Fixed Version:</span>
+                            <span class="detail-value">1.1.1t-r0</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">CVSS Score:</span>
+                            <span class="detail-value">5.3</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="vulnerability-item">
+                    <div class="vuln-header">
+                        <div class="vuln-title">CVE-2023-0215: Use after free in BIO_new_NDEF</div>
+                        <div class="badge badge-low">Low</div>
+                    </div>
+                    <div class="vuln-details">
+                        <div class="detail-item">
+                            <span class="detail-label">Package:</span>
+                            <span class="detail-value">libcrypto1.1</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Installed Version:</span>
+                            <span class="detail-value">1.1.1n-r0</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Fixed Version:</span>
+                            <span class="detail-value">1.1.1t-r0</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">CVSS Score:</span>
+                            <span class="detail-value">3.3</span>
+                        </div>
+                    </div>
+                </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-header">
+                <div class="section-title">Installed Packages</div>
+                <div class="badge badge-info">15 Total</div>
+            </div>
+            <div class="section-content">
+                <div class="scrollable-container">
+                <div class="package-item">
+                    <div class="package-header">
+                        <div class="package-name">nginx</div>
+                        <div class="package-version">1.21.0-r1</div>
+                    </div>
+                    <div class="vuln-details">
+                        <div class="detail-item">
+                            <span class="detail-label">License:</span>
+                            <span class="detail-value">BSD-2-Clause</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Architecture:</span>
+                            <span class="detail-value">x86_64</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Origin:</span>
+                            <span class="detail-value">nginx</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Size:</span>
+                            <span class="detail-value">2.1 MB</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="package-item">
+                    <div class="package-header">
+                        <div class="package-name">openssl</div>
+                        <div class="package-version">1.1.1n-r0</div>
+                    </div>
+                    <div class="vuln-details">
+                        <div class="detail-item">
+                            <span class="detail-label">License:</span>
+                            <span class="detail-value">OpenSSL</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Architecture:</span>
+                            <span class="detail-value">x86_64</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Origin:</span>
+                            <span class="detail-value">openssl</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Size:</span>
+                            <span class="detail-value">1.8 MB</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="package-item">
+                    <div class="package-header">
+                        <div class="package-name">alpine-baselayout</div>
+                        <div class="package-version">3.2.0-r22</div>
+                    </div>
+                    <div class="vuln-details">
+                        <div class="detail-item">
+                            <span class="detail-label">License:</span>
+                            <span class="detail-value">GPL-2.0-only</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Architecture:</span>
+                            <span class="detail-value">x86_64</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Origin:</span>
+                            <span class="detail-value">alpine-baselayout</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Size:</span>
+                            <span class="detail-value">413 KB</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="package-item">
+                    <div class="package-header">
+                        <div class="package-name">pcre</div>
+                        <div class="package-version">8.45-r2</div>
+                    </div>
+                    <div class="vuln-details">
+                        <div class="detail-item">
+                            <span class="detail-label">License:</span>
+                            <span class="detail-value">BSD-3-Clause</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Architecture:</span>
+                            <span class="detail-value">x86_64</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Origin:</span>
+                            <span class="detail-value">pcre</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Size:</span>
+                            <span class="detail-value">220 KB</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="package-item">
+                    <div class="package-header">
+                        <div class="package-name">zlib</div>
+                        <div class="package-version">1.2.12-r3</div>
+                    </div>
+                    <div class="vuln-details">
+                        <div class="detail-item">
+                            <span class="detail-label">License:</span>
+                            <span class="detail-value">Zlib</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Architecture:</span>
+                            <span class="detail-value">x86_64</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Origin:</span>
+                            <span class="detail-value">zlib</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Size:</span>
+                            <span class="detail-value">108 KB</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="package-item">
+                    <div class="package-header">
+                        <div class="package-name">musl</div>
+                        <div class="package-version">1.2.3-r0</div>
+                    </div>
+                    <div class="vuln-details">
+                        <div class="detail-item">
+                            <span class="detail-label">License:</span>
+                            <span class="detail-value">MIT</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Architecture:</span>
+                            <span class="detail-value">x86_64</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Origin:</span>
+                            <span class="detail-value">musl</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Size:</span>
+                            <span class="detail-value">615 KB</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="package-item">
+                    <div class="package-header">
+                        <div class="package-name">busybox</div>
+                        <div class="package-version">1.34.1-r3</div>
+                    </div>
+                    <div class="vuln-details">
+                        <div class="detail-item">
+                            <span class="detail-label">License:</span>
+                            <span class="detail-value">GPL-2.0-only</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Architecture:</span>
+                            <span class="detail-value">x86_64</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Origin:</span>
+                            <span class="detail-value">busybox</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Size:</span>
+                            <span class="detail-value">964 KB</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="package-item">
+                    <div class="package-header">
+                        <div class="package-name">ca-certificates-bundle</div>
+                        <div class="package-version">20220614-r0</div>
+                    </div>
+                    <div class="vuln-details">
+                        <div class="detail-item">
+                            <span class="detail-label">License:</span>
+                            <span class="detail-value">MPL-2.0 GPL-2.0-or-later</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Architecture:</span>
+                            <span class="detail-value">x86_64</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Origin:</span>
+                            <span class="detail-value">ca-certificates</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Size:</span>
+                            <span class="detail-value">233 KB</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="package-item">
+                    <div class="package-header">
+                        <div class="package-name">libcrypto1.1</div>
+                        <div class="package-version">1.1.1n-r0</div>
+                    </div>
+                    <div class="vuln-details">
+                        <div class="detail-item">
+                            <span class="detail-label">License:</span>
+                            <span class="detail-value">OpenSSL</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Architecture:</span>
+                            <span class="detail-value">x86_64</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Origin:</span>
+                            <span class="detail-value">openssl</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Size:</span>
+                            <span class="detail-value">2.7 MB</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="package-item">
+                    <div class="package-header">
+                        <div class="package-name">libssl1.1</div>
+                        <div class="package-version">1.1.1n-r0</div>
+                    </div>
+                    <div class="vuln-details">
+                        <div class="detail-item">
+                            <span class="detail-label">License:</span>
+                            <span class="detail-value">OpenSSL</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Architecture:</span>
+                            <span class="detail-value">x86_64</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Origin:</span>
+                            <span class="detail-value">openssl</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Size:</span>
+                            <span class="detail-value">542 KB</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="package-item">
+                    <div class="package-header">
+                        <div class="package-name">alpine-keys</div>
+                        <div class="package-version">2.4-r1</div>
+                    </div>
+                    <div class="vuln-details">
+                        <div class="detail-item">
+                            <span class="detail-label">License:</span>
+                            <span class="detail-value">MIT</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Architecture:</span>
+                            <span class="detail-value">x86_64</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Origin:</span>
+                            <span class="detail-value">alpine-keys</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Size:</span>
+                            <span class="detail-value">13 KB</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="package-item">
+                    <div class="package-header">
+                        <div class="package-name">apk-tools</div>
+                        <div class="package-version">2.12.9-r3</div>
+                    </div>
+                    <div class="vuln-details">
+                        <div class="detail-item">
+                            <span class="detail-label">License:</span>
+                            <span class="detail-value">GPL-2.0-only</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Architecture:</span>
+                            <span class="detail-value">x86_64</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Origin:</span>
+                            <span class="detail-value">apk-tools</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Size:</span>
+                            <span class="detail-value">310 KB</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="package-item">
+                    <div class="package-header">
+                        <div class="package-name">scanelf</div>
+                        <div class="package-version">1.3.4-r0</div>
+                    </div>
+                    <div class="vuln-details">
+                        <div class="detail-item">
+                            <span class="detail-label">License:</span>
+                            <span class="detail-value">GPL-2.0-only</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Architecture:</span>
+                            <span class="detail-value">x86_64</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Origin:</span>
+                            <span class="detail-value">pax-utils</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Size:</span>
+                            <span class="detail-value">35 KB</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="package-item">
+                    <div class="package-header">
+                        <div class="package-name">musl-utils</div>
+                        <div class="package-version">1.2.3-r0</div>
+                    </div>
+                    <div class="vuln-details">
+                        <div class="detail-item">
+                            <span class="detail-label">License:</span>
+                            <span class="detail-value">MIT BSD GPL2+</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Architecture:</span>
+                            <span class="detail-value">x86_64</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Origin:</span>
+                            <span class="detail-value">musl</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Size:</span>
+                            <span class="detail-value">151 KB</span>
+                        </div>
+                    </div>
+                </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-header">
+                <div class="section-title">Exposed Secrets</div>
+                <div class="badge badge-high">4 Found</div>
+            </div>
+            <div class="section-content">
+                <div class="scrollable-container">
+                <div class="secret-item">
+                    <div class="secret-header">
+                        <div class="secret-type">AWS Access Key</div>
+                        <div class="badge badge-critical">Critical</div>
+                    </div>
+                    <div class="vuln-details">
+                        <div class="detail-item location-item">
+                            <span class="detail-label">Location:</span>
+                            <span class="detail-value">/app/config/.env</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Pattern:</span>
+                            <span class="detail-value">AKIA[0-9A-Z]{16}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Line:</span>
+                            <span class="detail-value">15</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Risk:</span>
+                            <span class="detail-value">Unauthorized AWS resource access</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="secret-item">
+                    <div class="secret-header">
+                        <div class="secret-type">Private Key</div>
+                        <div class="badge badge-high">High</div>
+                    </div>
+                    <div class="vuln-details">
+                        <div class="detail-item location-item">
+                            <span class="detail-label">Location:</span>
+                            <span class="detail-value">/etc/ssl/private/server.key</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Pattern:</span>
+                            <span class="detail-value">-----BEGIN PRIVATE KEY-----</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Key Type:</span>
+                            <span class="detail-value">RSA 2048-bit</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Risk:</span>
+                            <span class="detail-value">SSL/TLS certificate compromise</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="secret-item">
+                    <div class="secret-header">
+                        <div class="secret-type">Database Password</div>
+                        <div class="badge badge-high">High</div>
+                    </div>
+                    <div class="vuln-details">
+                        <div class="detail-item location-item">
+                            <span class="detail-label">Location:</span>
+                            <span class="detail-value">/app/database/config.json</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Pattern:</span>
+                            <span class="detail-value">password field in JSON</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Line:</span>
+                            <span class="detail-value">8</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Risk:</span>
+                            <span class="detail-value">Database unauthorized access</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="secret-item">
+                    <div class="secret-header">
+                        <div class="secret-type">JWT Secret</div>
+                        <div class="badge badge-medium">Medium</div>
+                    </div>
+                    <div class="vuln-details">
+                        <div class="detail-item location-item">
+                            <span class="detail-label">Location:</span>
+                            <span class="detail-value">/app/src/auth/jwt.js</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Pattern:</span>
+                            <span class="detail-value">jwt.sign() secret parameter</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Line:</span>
+                            <span class="detail-value">23</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Risk:</span>
+                            <span class="detail-value">Token forgery and session hijacking</span>
+                        </div>
+                    </div>
+                </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-header">
+                <div class="section-title">CIS Benchmark Violations</div>
+                <div class="badge badge-high">6 Issues</div>
+            </div>
+            <div class="section-content">
+                <div class="scrollable-container">
+                <div class="violation-item">
+                    <div class="violation-header">
+                        <div class="violation-rule">CIS-DI-0001: Container should run as non-root user</div>
+                        <div class="badge badge-high">High</div>
+                    </div>
+                    <div class="violation-description">
+                        The container is configured to run as root user (UID 0), which violates the principle of least privilege and increases security risks.
+                    </div>
+                    <div class="vuln-details">
+                        <div class="detail-item">
+                            <span class="detail-label">Current User:</span>
+                            <span class="detail-value">root (UID: 0)</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Recommendation:</span>
+                            <span class="detail-value">Use USER directive in Dockerfile to set non-root user</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Impact:</span>
+                            <span class="detail-value">Privilege escalation vulnerability</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="violation-item">
+                    <div class="violation-header">
+                        <div class="violation-rule">CIS-DI-0005: Enable Content Trust for Docker</div>
+                        <div class="badge badge-medium">Medium</div>
+                    </div>
+                    <div class="violation-description">
+                        The image was not built with content trust enabled, which could allow tampered or malicious images to be used.
+                    </div>
+                    <div class="vuln-details">
+                        <div class="detail-item">
+                            <span class="detail-label">Status:</span>
+                            <span class="detail-value">Content trust not verified</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Recommendation:</span>
+                            <span class="detail-value">Enable DOCKER_CONTENT_TRUST=1</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Impact:</span>
+                            <span class="detail-value">Image integrity cannot be verified</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="violation-item">
+                    <div class="violation-header">
+                        <div class="violation-rule">CIS-DI-0008: Remove setuid and setgid permissions</div>
+                        <div class="badge badge-medium">Medium</div>
+                    </div>
+                    <div class="violation-description">
+                        Files with setuid/setgid permissions found in the image, which could be exploited for privilege escalation.
+                    </div>
+                    <div class="vuln-details">
+                        <div class="detail-item">
+                            <span class="detail-label">Files Found:</span>
+                            <span class="detail-value">3 files with elevated permissions</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Locations:</span>
+                            <span class="detail-value">/usr/bin/passwd, /usr/bin/su, /bin/ping</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Recommendation:</span>
+                            <span class="detail-value">Remove unnecessary setuid/setgid binaries</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="violation-item">
+                    <div class="violation-header">
+                        <div class="violation-rule">CIS-DI-0009: Use COPY instead of ADD in Dockerfile</div>
+                        <div class="badge badge-low">Low</div>
+                    </div>
+                    <div class="violation-description">
+                        The Dockerfile uses ADD instruction instead of COPY, which has additional functionality that may not be needed and could pose security risks.
+                    </div>
+                    <div class="vuln-details">
+                        <div class="detail-item">
+                            <span class="detail-label">Occurrences:</span>
+                            <span class="detail-value">2 ADD instructions found</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Lines:</span>
+                            <span class="detail-value">15, 23</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Recommendation:</span>
+                            <span class="detail-value">Replace ADD with COPY for local files</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="violation-item">
+                    <div class="violation-header">
+                        <div class="violation-rule">CIS-DI-0010: Do not store secrets in Dockerfiles</div>
+                        <div class="badge badge-critical">Critical</div>
+                    </div>
+                    <div class="violation-description">
+                        Hardcoded secrets or credentials detected in the Docker image layers, which could be extracted by attackers.
+                    </div>
+                    <div class="vuln-details">
+                        <div class="detail-item">
+                            <span class="detail-label">Secrets Found:</span>
+                            <span class="detail-value">Environment variables with sensitive data</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Layer:</span>
+                            <span class="detail-value">sha256:7abc123...</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Recommendation:</span>
+                            <span class="detail-value">Use external secret management solutions</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="violation-item">
+                    <div class="violation-header">
+                        <div class="violation-rule">CIS-DI-0006: Add HEALTHCHECK instruction</div>
+                        <div class="badge badge-low">Low</div>
+                    </div>
+                    <div class="violation-description">
+                        The Dockerfile does not include a HEALTHCHECK instruction, which makes it difficult to determine if the container is functioning properly.
+                    </div>
+                    <div class="vuln-details">
+                        <div class="detail-item">
+                            <span class="detail-label">Status:</span>
+                            <span class="detail-value">No health check configured</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Recommendation:</span>
+                            <span class="detail-value">Add HEALTHCHECK instruction to Dockerfile</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Impact:</span>
+                            <span class="detail-value">Cannot detect container health issues</span>
+                        </div>
+                    </div>
+                </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</body></html>

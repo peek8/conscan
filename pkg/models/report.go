@@ -32,8 +32,9 @@ type ScanReport struct {
 }
 
 type ImageMetadata struct {
-	Size int64 `json:",omitempty"`
-	OS   OS    `json:",omitempty"`
+	Size    int64  `json:",omitempty"`
+	SizeStr string `json:"sizeStr,omitempty"`
+	OS      OS     `json:",omitempty"`
 
 	// Container image
 	ImageID     string     `json:",omitempty"`
@@ -55,6 +56,7 @@ type OS struct {
 // for backwards compatibility.
 type ConfigFile struct {
 	Architecture string    `json:"architecture"`
+	OS           string    `json:"os"`
 	Author       string    `json:"author,omitempty"`
 	Container    string    `json:"container,omitempty"`
 	Created      time.Time `json:"created,omitempty"`
