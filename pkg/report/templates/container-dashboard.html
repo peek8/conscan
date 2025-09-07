@@ -455,7 +455,7 @@
             </div>
             <div class="section-content">
                 <div class="scrollable-container">
-              {{range $i, $vuln := .Vulnerabilities}}      
+              {{range $vuln := .Vulnerabilities}}      
                 <div class="vulnerability-item">
                     <div class="vuln-header">
                         <div class="vuln-title">{{$vuln.VulnerabilityID}}: {{$vuln.Title}}</div>
@@ -481,7 +481,7 @@
                     </div>
                 </div>
                 {{end}}
-                <div class="vulnerability-item">
+                <!-- <div class="vulnerability-item">
                     <div class="vuln-header">
                         <div class="vuln-title">CVE-2023-1255: AES-OCB implementation flaw</div>
                         <div class="badge badge-high">High</div>
@@ -554,7 +554,7 @@
                             <span class="detail-value">3.3</span>
                         </div>
                     </div>
-                </div>
+                </div> -->
                 </div>
             </div>
         </div>
@@ -562,35 +562,36 @@
         <div class="section">
             <div class="section-header">
                 <div class="section-title">Installed Packages</div>
-                <div class="badge badge-info">15 Total</div>
+                <div class="badge badge-info">{{.SBOMs.Packages | len}} Total</div>
             </div>
             <div class="section-content">
                 <div class="scrollable-container">
+                {{range $pkg := .SBOMs.Packages}}    
                 <div class="package-item">
                     <div class="package-header">
-                        <div class="package-name">nginx</div>
-                        <div class="package-version">1.21.0-r1</div>
+                        <div class="package-name">{{$pkg.PackageName}}</div>
+                        <div class="package-version">{{$pkg.PackageVersion}}</div>
                     </div>
                     <div class="vuln-details">
                         <div class="detail-item">
                             <span class="detail-label">License:</span>
-                            <span class="detail-value">BSD-2-Clause</span>
+                            <span class="detail-value">{{$pkg.PackageLicenseDeclared}}</span>
                         </div>
                         <div class="detail-item">
-                            <span class="detail-label">Architecture:</span>
-                            <span class="detail-value">x86_64</span>
+                            <span class="detail-label">Description:</span>
+                            <span class="detail-value">{{$pkg.PackageDescription}}</span>
                         </div>
                         <div class="detail-item">
-                            <span class="detail-label">Origin:</span>
-                            <span class="detail-value">nginx</span>
+                            <span class="detail-label">Source:</span>
+                            <span class="detail-value">{{$pkg.PackageDownloadLocation}}</span>
                         </div>
-                        <div class="detail-item">
+                        <!-- <div class="detail-item">
                             <span class="detail-label">Size:</span>
-                            <span class="detail-value">2.1 MB</span>
-                        </div>
+                            <span class="detail-value">110 MB</span>
+                        </div> -->
                     </div>
                 </div>
-
+                {{end}}
                 <div class="package-item">
                     <div class="package-header">
                         <div class="package-name">openssl</div>
@@ -616,280 +617,7 @@
                     </div>
                 </div>
 
-                <div class="package-item">
-                    <div class="package-header">
-                        <div class="package-name">alpine-baselayout</div>
-                        <div class="package-version">3.2.0-r22</div>
-                    </div>
-                    <div class="vuln-details">
-                        <div class="detail-item">
-                            <span class="detail-label">License:</span>
-                            <span class="detail-value">GPL-2.0-only</span>
-                        </div>
-                        <div class="detail-item">
-                            <span class="detail-label">Architecture:</span>
-                            <span class="detail-value">x86_64</span>
-                        </div>
-                        <div class="detail-item">
-                            <span class="detail-label">Origin:</span>
-                            <span class="detail-value">alpine-baselayout</span>
-                        </div>
-                        <div class="detail-item">
-                            <span class="detail-label">Size:</span>
-                            <span class="detail-value">413 KB</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="package-item">
-                    <div class="package-header">
-                        <div class="package-name">pcre</div>
-                        <div class="package-version">8.45-r2</div>
-                    </div>
-                    <div class="vuln-details">
-                        <div class="detail-item">
-                            <span class="detail-label">License:</span>
-                            <span class="detail-value">BSD-3-Clause</span>
-                        </div>
-                        <div class="detail-item">
-                            <span class="detail-label">Architecture:</span>
-                            <span class="detail-value">x86_64</span>
-                        </div>
-                        <div class="detail-item">
-                            <span class="detail-label">Origin:</span>
-                            <span class="detail-value">pcre</span>
-                        </div>
-                        <div class="detail-item">
-                            <span class="detail-label">Size:</span>
-                            <span class="detail-value">220 KB</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="package-item">
-                    <div class="package-header">
-                        <div class="package-name">zlib</div>
-                        <div class="package-version">1.2.12-r3</div>
-                    </div>
-                    <div class="vuln-details">
-                        <div class="detail-item">
-                            <span class="detail-label">License:</span>
-                            <span class="detail-value">Zlib</span>
-                        </div>
-                        <div class="detail-item">
-                            <span class="detail-label">Architecture:</span>
-                            <span class="detail-value">x86_64</span>
-                        </div>
-                        <div class="detail-item">
-                            <span class="detail-label">Origin:</span>
-                            <span class="detail-value">zlib</span>
-                        </div>
-                        <div class="detail-item">
-                            <span class="detail-label">Size:</span>
-                            <span class="detail-value">108 KB</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="package-item">
-                    <div class="package-header">
-                        <div class="package-name">musl</div>
-                        <div class="package-version">1.2.3-r0</div>
-                    </div>
-                    <div class="vuln-details">
-                        <div class="detail-item">
-                            <span class="detail-label">License:</span>
-                            <span class="detail-value">MIT</span>
-                        </div>
-                        <div class="detail-item">
-                            <span class="detail-label">Architecture:</span>
-                            <span class="detail-value">x86_64</span>
-                        </div>
-                        <div class="detail-item">
-                            <span class="detail-label">Origin:</span>
-                            <span class="detail-value">musl</span>
-                        </div>
-                        <div class="detail-item">
-                            <span class="detail-label">Size:</span>
-                            <span class="detail-value">615 KB</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="package-item">
-                    <div class="package-header">
-                        <div class="package-name">busybox</div>
-                        <div class="package-version">1.34.1-r3</div>
-                    </div>
-                    <div class="vuln-details">
-                        <div class="detail-item">
-                            <span class="detail-label">License:</span>
-                            <span class="detail-value">GPL-2.0-only</span>
-                        </div>
-                        <div class="detail-item">
-                            <span class="detail-label">Architecture:</span>
-                            <span class="detail-value">x86_64</span>
-                        </div>
-                        <div class="detail-item">
-                            <span class="detail-label">Origin:</span>
-                            <span class="detail-value">busybox</span>
-                        </div>
-                        <div class="detail-item">
-                            <span class="detail-label">Size:</span>
-                            <span class="detail-value">964 KB</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="package-item">
-                    <div class="package-header">
-                        <div class="package-name">ca-certificates-bundle</div>
-                        <div class="package-version">20220614-r0</div>
-                    </div>
-                    <div class="vuln-details">
-                        <div class="detail-item">
-                            <span class="detail-label">License:</span>
-                            <span class="detail-value">MPL-2.0 GPL-2.0-or-later</span>
-                        </div>
-                        <div class="detail-item">
-                            <span class="detail-label">Architecture:</span>
-                            <span class="detail-value">x86_64</span>
-                        </div>
-                        <div class="detail-item">
-                            <span class="detail-label">Origin:</span>
-                            <span class="detail-value">ca-certificates</span>
-                        </div>
-                        <div class="detail-item">
-                            <span class="detail-label">Size:</span>
-                            <span class="detail-value">233 KB</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="package-item">
-                    <div class="package-header">
-                        <div class="package-name">libcrypto1.1</div>
-                        <div class="package-version">1.1.1n-r0</div>
-                    </div>
-                    <div class="vuln-details">
-                        <div class="detail-item">
-                            <span class="detail-label">License:</span>
-                            <span class="detail-value">OpenSSL</span>
-                        </div>
-                        <div class="detail-item">
-                            <span class="detail-label">Architecture:</span>
-                            <span class="detail-value">x86_64</span>
-                        </div>
-                        <div class="detail-item">
-                            <span class="detail-label">Origin:</span>
-                            <span class="detail-value">openssl</span>
-                        </div>
-                        <div class="detail-item">
-                            <span class="detail-label">Size:</span>
-                            <span class="detail-value">2.7 MB</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="package-item">
-                    <div class="package-header">
-                        <div class="package-name">libssl1.1</div>
-                        <div class="package-version">1.1.1n-r0</div>
-                    </div>
-                    <div class="vuln-details">
-                        <div class="detail-item">
-                            <span class="detail-label">License:</span>
-                            <span class="detail-value">OpenSSL</span>
-                        </div>
-                        <div class="detail-item">
-                            <span class="detail-label">Architecture:</span>
-                            <span class="detail-value">x86_64</span>
-                        </div>
-                        <div class="detail-item">
-                            <span class="detail-label">Origin:</span>
-                            <span class="detail-value">openssl</span>
-                        </div>
-                        <div class="detail-item">
-                            <span class="detail-label">Size:</span>
-                            <span class="detail-value">542 KB</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="package-item">
-                    <div class="package-header">
-                        <div class="package-name">alpine-keys</div>
-                        <div class="package-version">2.4-r1</div>
-                    </div>
-                    <div class="vuln-details">
-                        <div class="detail-item">
-                            <span class="detail-label">License:</span>
-                            <span class="detail-value">MIT</span>
-                        </div>
-                        <div class="detail-item">
-                            <span class="detail-label">Architecture:</span>
-                            <span class="detail-value">x86_64</span>
-                        </div>
-                        <div class="detail-item">
-                            <span class="detail-label">Origin:</span>
-                            <span class="detail-value">alpine-keys</span>
-                        </div>
-                        <div class="detail-item">
-                            <span class="detail-label">Size:</span>
-                            <span class="detail-value">13 KB</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="package-item">
-                    <div class="package-header">
-                        <div class="package-name">apk-tools</div>
-                        <div class="package-version">2.12.9-r3</div>
-                    </div>
-                    <div class="vuln-details">
-                        <div class="detail-item">
-                            <span class="detail-label">License:</span>
-                            <span class="detail-value">GPL-2.0-only</span>
-                        </div>
-                        <div class="detail-item">
-                            <span class="detail-label">Architecture:</span>
-                            <span class="detail-value">x86_64</span>
-                        </div>
-                        <div class="detail-item">
-                            <span class="detail-label">Origin:</span>
-                            <span class="detail-value">apk-tools</span>
-                        </div>
-                        <div class="detail-item">
-                            <span class="detail-label">Size:</span>
-                            <span class="detail-value">310 KB</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="package-item">
-                    <div class="package-header">
-                        <div class="package-name">scanelf</div>
-                        <div class="package-version">1.3.4-r0</div>
-                    </div>
-                    <div class="vuln-details">
-                        <div class="detail-item">
-                            <span class="detail-label">License:</span>
-                            <span class="detail-value">GPL-2.0-only</span>
-                        </div>
-                        <div class="detail-item">
-                            <span class="detail-label">Architecture:</span>
-                            <span class="detail-value">x86_64</span>
-                        </div>
-                        <div class="detail-item">
-                            <span class="detail-label">Origin:</span>
-                            <span class="detail-value">pax-utils</span>
-                        </div>
-                        <div class="detail-item">
-                            <span class="detail-label">Size:</span>
-                            <span class="detail-value">35 KB</span>
-                        </div>
-                    </div>
-                </div>
+               
 
                 <div class="package-item">
                     <div class="package-header">

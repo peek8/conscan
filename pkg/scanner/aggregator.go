@@ -163,6 +163,7 @@ func (vg *VulnerabilitiesAggregrator) normalizeGripyVulnerabilities() []models.D
 	}
 
 	return lo.Map(vg.Result.GrypeResult.Matches, func(m grypemodels.Match, index int) models.DetectedVulnerability {
+		rv := lo.FirstOrEmpty(m.RelatedVulnerabilities)
 		return models.DetectedVulnerability{
 			VulnerabilityID:  m.Vulnerability.ID,
 			PkgID:            m.Artifact.Name + "@" + m.Artifact.Version,
@@ -171,7 +172,7 @@ func (vg *VulnerabilitiesAggregrator) normalizeGripyVulnerabilities() []models.D
 			FixedVersion:     lo.FirstOr(m.Vulnerability.Fix.Versions, ""),
 			Status:           m.Vulnerability.Fix.State,
 			Title:            getTitle(m),
-			Description:      utils.EitherOrFunc(len(m.RelatedVulnerabilities) > 0, func() string { return m.RelatedVulnerabilities[0].Description }, m.Vulnerability.Description),
+			Description:      utils.EitherOr(rv.Description != "", rv.Description, m.Vulnerability.Description),
 			Severity:         m.Vulnerability.Severity,
 			//CweIDs: tv.CweIDs,
 
