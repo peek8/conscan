@@ -21,6 +21,7 @@ import (
 
 type ScanReport struct {
 	CreatedAt    time.Time `json:",omitzero"`
+	CreatedAtStr string    `json:",omitzero"`
 	ArtifactName string    `json:",omitempty"`
 	ArtifactType string    `json:",omitempty"`
 

@@ -415,7 +415,7 @@
                 </div>
                 <div class="info-item">
                     <div class="info-label">Scan Date</div>
-                    <div class="info-value">2024-03-15 14:30:22 UTC</div>
+                    <div class="info-value">{{.CreatedAtStr}}</div>
                 </div>
                 <div class="info-item">
                     <div class="info-label">Scanner Version</div>
@@ -426,19 +426,19 @@
 
         <div class="summary-cards">
             <div class="summary-card critical-card">
-                <div class="summary-number">3</div>
+                <div class="summary-number">{{.VulnerabilitySummary.CriticalCount}}</div>
                 <div class="summary-label">Critical Vulnerabilities</div>
             </div>
             <div class="summary-card high-card">
-                <div class="summary-number">7</div>
+                <div class="summary-number">{{.VulnerabilitySummary.HighCount}}</div>
                 <div class="summary-label">High Vulnerabilities</div>
             </div>
             <div class="summary-card exposed-secrets">
-                <div class="summary-number">12</div>
+                <div class="summary-number">{{.Secrets | len}}</div>
                 <div class="summary-label">Exposed Secrets</div>
             </div>
             <div class="summary-card low-card">
-                <div class="summary-number">8</div>
+                <div class="summary-number">{{.SBOMs.Packages | len}}</div>
                 <div class="summary-label">Installed Packages</div>
             </div>
             <div class="summary-card cis-violation">
@@ -451,35 +451,36 @@
         <div class="section">
             <div class="section-header">
                 <div class="section-title">Package Vulnerabilities</div>
-                <div class="badge badge-critical">30 Total</div>
+                <div class="badge badge-critical">{{.VulnerabilitySummary.TotalCount}} Total</div>
             </div>
             <div class="section-content">
                 <div class="scrollable-container">
+              {{range $i, $vuln := .Vulnerabilities}}      
                 <div class="vulnerability-item">
                     <div class="vuln-header">
-                        <div class="vuln-title">CVE-2023-4807: OpenSSL Denial of Service</div>
-                        <div class="badge badge-critical">Critical</div>
+                        <div class="vuln-title">{{$vuln.VulnerabilityID}}: {{$vuln.Title}}</div>
+                        <div class="badge badge-critical">{{$vuln.Severity}}</div>
                     </div>
                     <div class="vuln-details">
                         <div class="detail-item">
                             <span class="detail-label">Package:</span>
-                            <span class="detail-value">openssl</span>
+                            <span class="detail-value">{{$vuln.PkgName}}</span>
                         </div>
                         <div class="detail-item">
                             <span class="detail-label">Installed Version:</span>
-                            <span class="detail-value">1.1.1n-r0</span>
+                            <span class="detail-value">{{$vuln.InstalledVersion}}</span>
                         </div>
                         <div class="detail-item">
                             <span class="detail-label">Fixed Version:</span>
-                            <span class="detail-value">1.1.1s-r0</span>
+                            <span class="detail-value">{{$vuln.FixedVersion}}</span>
                         </div>
                         <div class="detail-item">
                             <span class="detail-label">CVSS Score:</span>
-                            <span class="detail-value">9.8</span>
+                            <span class="detail-value">{{$vuln.CvssScore}}</span>
                         </div>
                     </div>
                 </div>
-
+                {{end}}
                 <div class="vulnerability-item">
                     <div class="vuln-header">
                         <div class="vuln-title">CVE-2023-1255: AES-OCB implementation flaw</div>
