@@ -131,10 +131,9 @@ func (vr VulnerabilitiesRenderer) Render(report models.ScanReport) error {
 
 func (vr VulnerabilitiesRenderer) getVulnerabilityDescription(vuln models.DetectedVulnerability) string {
 	desc := utils.EitherOr(len(vuln.Title) > 0, vuln.Title, vuln.Description)
+	sourceUrl := utils.IfEmptyStr(vuln.DataSourceURL, fmt.Sprintf("https://www.cve.org/CVERecord?id=%s", vuln.VulnerabilityID))
 
-	url := getColored(fmt.Sprintf("https://www.cve.org/CVERecord?id=%s", vuln.VulnerabilityID), color.FgBlue)
-
-	return fmt.Sprintf("%s....\n%s", wrapText(desc, 100), url)
+	return fmt.Sprintf("%s....\n%s", wrapText(desc, 100), getColored(sourceUrl, color.FgBlue))
 }
 
 type SecretsRenderer struct {

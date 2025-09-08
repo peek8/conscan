@@ -458,7 +458,7 @@
               {{range $vuln := .Vulnerabilities}}      
                 <div class="vulnerability-item">
                     <div class="vuln-header">
-                        <div class="vuln-title">{{$vuln.VulnerabilityID}}: {{$vuln.Title}}</div>
+                        <div class="vuln-title"><a href="{{$vuln.DataSourceURL}}">{{$vuln.VulnerabilityID}}:</a> {{$vuln | getTitle}}</div>
                         <div class="badge badge-critical">{{$vuln.Severity}}</div>
                     </div>
                     <div class="vuln-details">
@@ -476,7 +476,7 @@
                         </div>
                         <div class="detail-item">
                             <span class="detail-label">CVSS Score:</span>
-                            <span class="detail-value">{{$vuln.CvssScore}}</span>
+                            <span class="detail-value">{{$vuln | getCvssScore}}</span>
                         </div>
                     </div>
                 </div>

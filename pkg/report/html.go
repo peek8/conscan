@@ -11,9 +11,11 @@ package report
 import (
 	"context"
 	_ "embed"
+	"fmt"
 	"html/template"
 	"io"
 
+	"github.com/samber/lo"
 	"peek8.io/conscan/pkg/models"
 	"peek8.io/conscan/pkg/utils"
 )
@@ -33,10 +35,23 @@ func (hw HtmlWriter) Write(_ context.Context, report models.ScanReport) error {
 }
 
 func (hw HtmlWriter) newTemplate() *template.Template {
-	tmpl, err := template.New("html-report").Parse(htmlReportTemplate)
+	tmpl, err := template.New("html-report").Funcs(funcMap).Parse(htmlReportTemplate)
 
 	utils.ExitOnError(err)
 
 	return tmpl
 
+}
+
+var funcMap = template.FuncMap{
+	"getTitle":     getTitle,
+	"getCvssScore": getCvssScore,
+}
+
+func getTitle(vuln models.DetectedVulnerability) string {
+	return utils.IfEmptyStr(vuln.Title, lo.Ellipsis(vuln.Description, 100))
+}
+
+func getCvssScore(vuln models.DetectedVulnerability) string {
+	return utils.EitherOr(vuln.CvssScore > 0, fmt.Sprintf("%.2f", vuln.CvssScore), "Unknown")
 }

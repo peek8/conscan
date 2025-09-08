@@ -64,6 +64,8 @@ func (vg *VulnerabilitiesAggregrator) mergeVulnerabilities(trivyVulns, grypeVuln
 	})
 
 	vulnsKeys := lo.UniqKeys(trivyVulnMap, grypVulnMap)
+	//fmt.Printf("Vulnerabilities Keys: %s \n", vulnsKeys)
+
 	return lo.Map(vulnsKeys, func(key string, index int) models.DetectedVulnerability {
 		trivyVuln, tOk := trivyVulnMap[key]
 		grypeVuln, gOk := grypVulnMap[key]
@@ -103,6 +105,7 @@ func (vg *VulnerabilitiesAggregrator) normalizeTrivyVulnerabilities() []models.D
 			VulnerabilityID:  tv.VulnerabilityID,
 			PkgID:            tv.PkgID,
 			PkgName:          tv.PkgName,
+			DataSourceURL:    tv.PrimaryURL,
 			InstalledVersion: tv.InstalledVersion,
 			FixedVersion:     tv.FixedVersion,
 			Status:           tv.Status.String(),
@@ -168,6 +171,7 @@ func (vg *VulnerabilitiesAggregrator) normalizeGripyVulnerabilities() []models.D
 			VulnerabilityID:  m.Vulnerability.ID,
 			PkgID:            m.Artifact.Name + "@" + m.Artifact.Version,
 			PkgName:          m.Artifact.Name,
+			DataSourceURL:    m.Vulnerability.DataSource,
 			InstalledVersion: m.Artifact.Version,
 			FixedVersion:     lo.FirstOr(m.Vulnerability.Fix.Versions, ""),
 			Status:           m.Vulnerability.Fix.State,
