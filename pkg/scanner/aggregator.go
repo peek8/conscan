@@ -278,6 +278,11 @@ func (sa *SbomsAggregator) AggregateSboms() *spdxv23.Document {
 	// copy the struct
 	res := *sa.SyftySBOMs
 
+	sort.Slice(res.Packages, func(i, j int) bool {
+		// Sorts in ascending alphabetical order by Name
+		return res.Packages[i].PackageName < res.Packages[j].PackageName
+	})
+
 	// omit relationships and files
 	res.Relationships = []*spdxv23.Relationship{}
 	res.Files = []*spdxv23.File{}
@@ -298,7 +303,7 @@ func (ra *ReportAggregrator) newReport() *models.ScanReport {
 
 	return &models.ScanReport{
 		CreatedAt:    tr.CreatedAt,
-		CreatedAtStr: tr.CreatedAt.UTC().Format("2006-01-02 15:04:05") + "(UTC)",
+		CreatedAtStr: fmt.Sprintf("%s UTC", tr.CreatedAt.UTC().Format("2006-01-02 15:04:05")),
 		ArtifactName: tr.ArtifactName,
 		ArtifactType: string(tr.ArtifactType),
 		Metadata: models.ImageMetadata{

@@ -14,6 +14,7 @@ import (
 	"fmt"
 	"html/template"
 	"io"
+	"strings"
 
 	"github.com/samber/lo"
 	"peek8.io/conscan/pkg/models"
@@ -44,8 +45,10 @@ func (hw HtmlWriter) newTemplate() *template.Template {
 }
 
 var funcMap = template.FuncMap{
-	"getTitle":     getTitle,
-	"getCvssScore": getCvssScore,
+	"getTitle":              getTitle,
+	"getCvssScore":          getCvssScore,
+	"toLower":               toLower,
+	"emptyValuePlaceholder": emptyValuePlaceholder,
 }
 
 func getTitle(vuln models.DetectedVulnerability) string {
@@ -54,4 +57,16 @@ func getTitle(vuln models.DetectedVulnerability) string {
 
 func getCvssScore(vuln models.DetectedVulnerability) string {
 	return utils.EitherOr(vuln.CvssScore > 0, fmt.Sprintf("%.2f", vuln.CvssScore), "Unknown")
+}
+
+func toLower(s string) string {
+	return strings.ToLower(s)
+}
+
+func emptyValuePlaceholder(s string) string {
+	if s != "" {
+		return s
+	}
+
+	return "-"
 }
