@@ -153,7 +153,7 @@ func (sr SecretsRenderer) Render(report models.ScanReport) error {
 	t.AppendHeader(table.Row{"Location", "Title", "Category", "Content", "Severity", "Description"})
 	for _, sec := range report.Secrets {
 		t.AppendRow(table.Row{
-			sr.getLocation(sec), sec.Title, sec.Category, sec.Content, getSeverityColoredText(sec.Severity), sec.Description,
+			getSecretLocation(sec), sec.Title, sec.Category, sec.Content, getSeverityColoredText(sec.Severity), sec.Description,
 		})
 		t.AppendSeparator()
 	}
@@ -163,7 +163,7 @@ func (sr SecretsRenderer) Render(report models.ScanReport) error {
 	return nil
 }
 
-func (sr SecretsRenderer) getLocation(sec models.DetectedPresSecret) string {
+func getSecretLocation(sec models.DetectedPresSecret) string {
 	if sec.LocationType == models.LocationTypeFileSystem {
 		return fmt.Sprintf("%s:%d:%d", sec.Target, sec.StartLine, sec.EndLine)
 	}

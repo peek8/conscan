@@ -190,11 +190,28 @@
         }
 
         .secret-item .detail-item.location-item {
-            flex-direction: column;
+            /* flex-direction: column; */
             gap: 3px;
         }
 
         .secret-item .detail-item.location-item .detail-value {
+            /*font-family: monospace;
+            font-weight: bold;
+             background: #f3f4f6;
+            padding: 4px 6px;
+            border-radius: 4px;
+            font-size: 0.8em; */
+            
+            color: #48297f;
+            word-break: break-all;
+        }
+
+        .secret-item .detail-item.pattern-item {
+            flex-direction: column;
+            gap: 3px;
+        }
+
+        .secret-item .detail-item.pattern-item .detail-value {
             font-family: monospace;
             background: #f3f4f6;
             padding: 4px 6px;
@@ -207,7 +224,7 @@
         .detail-label {
             font-weight: 600;
             color: #ff1744;
-            min-width: 100px;
+            min-width: 80px;
         }
 
         .detail-value {
@@ -525,109 +542,37 @@
         <div class="section">
             <div class="section-header">
                 <div class="section-title">Exposed Secrets</div>
-                <div class="badge badge-high">4 Found</div>
+                <div class="badge badge-high">{{.Secrets | len}} Found</div>
             </div>
             <div class="section-content">
                 <div class="scrollable-container">
-                <div class="secret-item">
-                    <div class="secret-header">
-                        <div class="secret-type">AWS Access Key</div>
-                        <div class="badge badge-critical">Critical</div>
-                    </div>
-                    <div class="vuln-details">
-                        <div class="detail-item location-item">
-                            <span class="detail-label">Location:</span>
-                            <span class="detail-value">/app/config/.env</span>
+                    {{range $sec := .Secrets}}    
+                    <div class="secret-item">
+                        <div class="secret-header">
+                            <div class="secret-type">{{$sec.Title}}</div>
+                            <div class="badge badge-{{$sec.Severity | toLower}}">{{$sec.Severity}}</div>
                         </div>
-                        <div class="detail-item">
-                            <span class="detail-label">Pattern:</span>
-                            <span class="detail-value">AKIA[0-9A-Z]{16}</span>
-                        </div>
-                        <div class="detail-item">
-                            <span class="detail-label">Line:</span>
-                            <span class="detail-value">15</span>
-                        </div>
-                        <div class="detail-item">
-                            <span class="detail-label">Risk:</span>
-                            <span class="detail-value">Unauthorized AWS resource access</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="secret-item">
-                    <div class="secret-header">
-                        <div class="secret-type">Private Key</div>
-                        <div class="badge badge-high">High</div>
-                    </div>
-                    <div class="vuln-details">
-                        <div class="detail-item location-item">
-                            <span class="detail-label">Location:</span>
-                            <span class="detail-value">/etc/ssl/private/server.key</span>
-                        </div>
-                        <div class="detail-item">
-                            <span class="detail-label">Pattern:</span>
-                            <span class="detail-value">-----BEGIN PRIVATE KEY-----</span>
-                        </div>
-                        <div class="detail-item">
-                            <span class="detail-label">Key Type:</span>
-                            <span class="detail-value">RSA 2048-bit</span>
-                        </div>
-                        <div class="detail-item">
-                            <span class="detail-label">Risk:</span>
-                            <span class="detail-value">SSL/TLS certificate compromise</span>
+                        <div class="vuln-details">
+                            <div class="detail-item location-item">
+                                <span class="detail-label">Location:</span>
+                                <span class="detail-value">{{$sec | getSecretLocation}}</span>
+                            </div>
+                            <div class="detail-item pattern-item">
+                                <span class="detail-label">Pattern:</span>
+                                <span class="detail-value">{{$sec.Content | htmlLineBreak}}</span>
+                            </div>
+                            <!--<div class="detail-item">
+                                <span class="detail-label">Line:</span>
+                                <span class="detail-value">15</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Risk:</span>
+                                <span class="detail-value">Unauthorized AWS resource access</span>
+                            </div> -->
                         </div>
                     </div>
-                </div>
-
-                <div class="secret-item">
-                    <div class="secret-header">
-                        <div class="secret-type">Database Password</div>
-                        <div class="badge badge-high">High</div>
-                    </div>
-                    <div class="vuln-details">
-                        <div class="detail-item location-item">
-                            <span class="detail-label">Location:</span>
-                            <span class="detail-value">/app/database/config.json</span>
-                        </div>
-                        <div class="detail-item">
-                            <span class="detail-label">Pattern:</span>
-                            <span class="detail-value">password field in JSON</span>
-                        </div>
-                        <div class="detail-item">
-                            <span class="detail-label">Line:</span>
-                            <span class="detail-value">8</span>
-                        </div>
-                        <div class="detail-item">
-                            <span class="detail-label">Risk:</span>
-                            <span class="detail-value">Database unauthorized access</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="secret-item">
-                    <div class="secret-header">
-                        <div class="secret-type">JWT Secret</div>
-                        <div class="badge badge-medium">Medium</div>
-                    </div>
-                    <div class="vuln-details">
-                        <div class="detail-item location-item">
-                            <span class="detail-label">Location:</span>
-                            <span class="detail-value">/app/src/auth/jwt.js</span>
-                        </div>
-                        <div class="detail-item">
-                            <span class="detail-label">Pattern:</span>
-                            <span class="detail-value">jwt.sign() secret parameter</span>
-                        </div>
-                        <div class="detail-item">
-                            <span class="detail-label">Line:</span>
-                            <span class="detail-value">23</span>
-                        </div>
-                        <div class="detail-item">
-                            <span class="detail-label">Risk:</span>
-                            <span class="detail-value">Token forgery and session hijacking</span>
-                        </div>
-                    </div>
-                </div>
+                    {{end}}
+                
                 </div>
             </div>
         </div>

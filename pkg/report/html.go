@@ -49,6 +49,8 @@ var funcMap = template.FuncMap{
 	"getCvssScore":          getCvssScore,
 	"toLower":               toLower,
 	"emptyValuePlaceholder": emptyValuePlaceholder,
+	"getSecretLocation":     getSecretLocation,
+	"htmlLineBreak":         htmlLineBreak,
 }
 
 func getTitle(vuln models.DetectedVulnerability) string {
@@ -61,6 +63,10 @@ func getCvssScore(vuln models.DetectedVulnerability) string {
 
 func toLower(s string) string {
 	return strings.ToLower(s)
+}
+
+func htmlLineBreak(text string) template.HTML {
+	return template.HTML(strings.ReplaceAll(strings.TrimSpace(text), "\n", "<br>"))
 }
 
 func emptyValuePlaceholder(s string) string {
