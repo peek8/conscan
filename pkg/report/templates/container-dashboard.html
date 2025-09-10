@@ -133,11 +133,11 @@
             font-weight: 600;
         }
 
-        .badge-critical { background: #ff1744; color: white; box-shadow: 0 4px 15px rgba(255, 23, 68, 0.4); }
-        .badge-high { background: #ff6d00; color: white; box-shadow: 0 4px 15px rgba(255, 109, 0, 0.4); }
-        .badge-medium { background: #ffc400; color: #333; box-shadow: 0 4px 15px rgba(255, 196, 0, 0.4); }
-        .badge-low { background: #00e676; color: white; box-shadow: 0 4px 15px rgba(0, 230, 118, 0.4); }
-        .badge-info, .badge-unknown { background: #2979ff; color: white; box-shadow: 0 4px 15px rgba(41, 121, 255, 0.4); }
+        .badge-critical, .badge-fatal { background: #ff1744; color: white; box-shadow: 0 4px 15px rgba(255, 23, 68, 0.4); }
+        .badge-high, .badge-warn { background: #ff6d00; color: white; box-shadow: 0 4px 15px rgba(255, 109, 0, 0.4); }
+        .badge-medium, .badge-info { background: #ffc400; color: #333; box-shadow: 0 4px 15px rgba(255, 196, 0, 0.4); }
+        .badge-low, .badge-skip { background: #00e676; color: white; box-shadow: 0 4px 15px rgba(0, 230, 118, 0.4); }
+        .badge-info, .badge-unknown, .badge-ignore, .badge-pass  { background: #2979ff; color: white; box-shadow: 0 4px 15px rgba(41, 121, 255, 0.4); }
 
         .section-content {
             padding: 10px;
@@ -466,7 +466,7 @@
                 <div class="summary-label">Installed Packages</div>
             </div>
             <div class="summary-card cis-violation">
-                <div class="summary-number">8</div>
+                <div class="summary-number">{{.CISScans.Details | len}}</div>
                 <div class="summary-label">CIS Violations</div>
             </div>
             
@@ -503,6 +503,82 @@
                                 <span class="detail-value">{{$vuln | getCvssScore}}</span>
                             </div>
                         </div>
+                    </div>
+                    {{end}}
+                </div>
+            </div>
+        </div>
+
+        
+
+        <div class="section">
+            <div class="section-header">
+                <div class="section-title">Exposed Secrets</div>
+                <div class="badge badge-high">{{.Secrets | len}} Found</div>
+            </div>
+            <div class="section-content">
+                <div class="scrollable-container">
+                    {{range $sec := .Secrets}}    
+                    <div class="secret-item">
+                        <div class="secret-header">
+                            <div class="secret-type">{{$sec.Title}}</div>
+                            <div class="badge badge-{{$sec.Severity | toLower}}">{{$sec.Severity}}</div>
+                        </div>
+                        <div class="vuln-details">
+                            <div class="detail-item location-item">
+                                <span class="detail-label">Location:</span>
+                                <span class="detail-value">{{$sec | getSecretLocation}}</span>
+                            </div>
+                            <div class="detail-item pattern-item">
+                                <span class="detail-label">Pattern:</span>
+                                <span class="detail-value">{{$sec.Content | htmlLineBreak}}</span>
+                            </div>
+                            <!--<div class="detail-item">
+                                <span class="detail-label">Line:</span>
+                                <span class="detail-value">15</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Risk:</span>
+                                <span class="detail-value">Unauthorized AWS resource access</span>
+                            </div> -->
+                        </div>
+                    </div>
+                    {{end}}
+                
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-header">
+                <div class="section-title">CIS Benchmark Violations</div>
+                <div class="badge badge-high">{{.CISScans.Details | len}} Issues</div>
+            </div>
+            <div class="section-content">
+                <div class="scrollable-container">
+                    {{range $cis := .CISScans.Details}}
+                    <div class="violation-item">
+                        <div class="violation-header">
+                            <div class="violation-rule">{{$cis.Code}}: {{$cis.Title}}</div>
+                            <div class="badge badge-{{$cis.Level | toLower}}">{{$cis.Level}}</div>
+                        </div>
+                        <div class="violation-description">
+                            {{$cis.Alerts | slicesToHtmlLineBreak}}
+                        </div>
+                        <!-- <div class="vuln-details">
+                            <div class="detail-item">
+                                <span class="detail-label">Current User:</span>
+                                <span class="detail-value">root (UID: 0)</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Recommendation:</span>
+                                <span class="detail-value">Use USER directive in Dockerfile to set non-root user</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Impact:</span>
+                                <span class="detail-value">Privilege escalation vulnerability</span>
+                            </div>
+                        </div> -->
                     </div>
                     {{end}}
                 </div>
@@ -546,197 +622,6 @@
             </div>
         </div>
 
-        <div class="section">
-            <div class="section-header">
-                <div class="section-title">Exposed Secrets</div>
-                <div class="badge badge-high">{{.Secrets | len}} Found</div>
-            </div>
-            <div class="section-content">
-                <div class="scrollable-container">
-                    {{range $sec := .Secrets}}    
-                    <div class="secret-item">
-                        <div class="secret-header">
-                            <div class="secret-type">{{$sec.Title}}</div>
-                            <div class="badge badge-{{$sec.Severity | toLower}}">{{$sec.Severity}}</div>
-                        </div>
-                        <div class="vuln-details">
-                            <div class="detail-item location-item">
-                                <span class="detail-label">Location:</span>
-                                <span class="detail-value">{{$sec | getSecretLocation}}</span>
-                            </div>
-                            <div class="detail-item pattern-item">
-                                <span class="detail-label">Pattern:</span>
-                                <span class="detail-value">{{$sec.Content | htmlLineBreak}}</span>
-                            </div>
-                            <!--<div class="detail-item">
-                                <span class="detail-label">Line:</span>
-                                <span class="detail-value">15</span>
-                            </div>
-                            <div class="detail-item">
-                                <span class="detail-label">Risk:</span>
-                                <span class="detail-value">Unauthorized AWS resource access</span>
-                            </div> -->
-                        </div>
-                    </div>
-                    {{end}}
-                
-                </div>
-            </div>
-        </div>
-
-        <div class="section">
-            <div class="section-header">
-                <div class="section-title">CIS Benchmark Violations</div>
-                <div class="badge badge-high">6 Issues</div>
-            </div>
-            <div class="section-content">
-                <div class="scrollable-container">
-                <div class="violation-item">
-                    <div class="violation-header">
-                        <div class="violation-rule">CIS-DI-0001: Container should run as non-root user</div>
-                        <div class="badge badge-high">High</div>
-                    </div>
-                    <div class="violation-description">
-                        The container is configured to run as root user (UID 0), which violates the principle of least privilege and increases security risks.
-                    </div>
-                    <div class="vuln-details">
-                        <div class="detail-item">
-                            <span class="detail-label">Current User:</span>
-                            <span class="detail-value">root (UID: 0)</span>
-                        </div>
-                        <div class="detail-item">
-                            <span class="detail-label">Recommendation:</span>
-                            <span class="detail-value">Use USER directive in Dockerfile to set non-root user</span>
-                        </div>
-                        <div class="detail-item">
-                            <span class="detail-label">Impact:</span>
-                            <span class="detail-value">Privilege escalation vulnerability</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="violation-item">
-                    <div class="violation-header">
-                        <div class="violation-rule">CIS-DI-0005: Enable Content Trust for Docker</div>
-                        <div class="badge badge-medium">Medium</div>
-                    </div>
-                    <div class="violation-description">
-                        The image was not built with content trust enabled, which could allow tampered or malicious images to be used.
-                    </div>
-                    <div class="vuln-details">
-                        <div class="detail-item">
-                            <span class="detail-label">Status:</span>
-                            <span class="detail-value">Content trust not verified</span>
-                        </div>
-                        <div class="detail-item">
-                            <span class="detail-label">Recommendation:</span>
-                            <span class="detail-value">Enable DOCKER_CONTENT_TRUST=1</span>
-                        </div>
-                        <div class="detail-item">
-                            <span class="detail-label">Impact:</span>
-                            <span class="detail-value">Image integrity cannot be verified</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="violation-item">
-                    <div class="violation-header">
-                        <div class="violation-rule">CIS-DI-0008: Remove setuid and setgid permissions</div>
-                        <div class="badge badge-medium">Medium</div>
-                    </div>
-                    <div class="violation-description">
-                        Files with setuid/setgid permissions found in the image, which could be exploited for privilege escalation.
-                    </div>
-                    <div class="vuln-details">
-                        <div class="detail-item">
-                            <span class="detail-label">Files Found:</span>
-                            <span class="detail-value">3 files with elevated permissions</span>
-                        </div>
-                        <div class="detail-item">
-                            <span class="detail-label">Locations:</span>
-                            <span class="detail-value">/usr/bin/passwd, /usr/bin/su, /bin/ping</span>
-                        </div>
-                        <div class="detail-item">
-                            <span class="detail-label">Recommendation:</span>
-                            <span class="detail-value">Remove unnecessary setuid/setgid binaries</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="violation-item">
-                    <div class="violation-header">
-                        <div class="violation-rule">CIS-DI-0009: Use COPY instead of ADD in Dockerfile</div>
-                        <div class="badge badge-low">Low</div>
-                    </div>
-                    <div class="violation-description">
-                        The Dockerfile uses ADD instruction instead of COPY, which has additional functionality that may not be needed and could pose security risks.
-                    </div>
-                    <div class="vuln-details">
-                        <div class="detail-item">
-                            <span class="detail-label">Occurrences:</span>
-                            <span class="detail-value">2 ADD instructions found</span>
-                        </div>
-                        <div class="detail-item">
-                            <span class="detail-label">Lines:</span>
-                            <span class="detail-value">15, 23</span>
-                        </div>
-                        <div class="detail-item">
-                            <span class="detail-label">Recommendation:</span>
-                            <span class="detail-value">Replace ADD with COPY for local files</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="violation-item">
-                    <div class="violation-header">
-                        <div class="violation-rule">CIS-DI-0010: Do not store secrets in Dockerfiles</div>
-                        <div class="badge badge-critical">Critical</div>
-                    </div>
-                    <div class="violation-description">
-                        Hardcoded secrets or credentials detected in the Docker image layers, which could be extracted by attackers.
-                    </div>
-                    <div class="vuln-details">
-                        <div class="detail-item">
-                            <span class="detail-label">Secrets Found:</span>
-                            <span class="detail-value">Environment variables with sensitive data</span>
-                        </div>
-                        <div class="detail-item">
-                            <span class="detail-label">Layer:</span>
-                            <span class="detail-value">sha256:7abc123...</span>
-                        </div>
-                        <div class="detail-item">
-                            <span class="detail-label">Recommendation:</span>
-                            <span class="detail-value">Use external secret management solutions</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="violation-item">
-                    <div class="violation-header">
-                        <div class="violation-rule">CIS-DI-0006: Add HEALTHCHECK instruction</div>
-                        <div class="badge badge-low">Low</div>
-                    </div>
-                    <div class="violation-description">
-                        The Dockerfile does not include a HEALTHCHECK instruction, which makes it difficult to determine if the container is functioning properly.
-                    </div>
-                    <div class="vuln-details">
-                        <div class="detail-item">
-                            <span class="detail-label">Status:</span>
-                            <span class="detail-value">No health check configured</span>
-                        </div>
-                        <div class="detail-item">
-                            <span class="detail-label">Recommendation:</span>
-                            <span class="detail-value">Add HEALTHCHECK instruction to Dockerfile</span>
-                        </div>
-                        <div class="detail-item">
-                            <span class="detail-label">Impact:</span>
-                            <span class="detail-value">Cannot detect container health issues</span>
-                        </div>
-                    </div>
-                </div>
-                </div>
-            </div>
-        </div>
     </div>
 
 </body></html>

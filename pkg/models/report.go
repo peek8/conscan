@@ -16,6 +16,7 @@ package models
 import (
 	"time"
 
+	docklereport "github.com/goodwithtech/dockle/pkg/report"
 	spdxv23 "github.com/spdx/tools-golang/spdx/v2/v2_3"
 )
 
@@ -25,11 +26,12 @@ type ScanReport struct {
 	ArtifactName string    `json:",omitempty"`
 	ArtifactType string    `json:",omitempty"`
 
-	Metadata             ImageMetadata           `json:"metadata,omitzero"`
-	Vulnerabilities      []DetectedVulnerability `json:"vulnerabilities,omitempty"`
-	VulnerabilitySummary *VulnerabilitySummary   `json:"vulnerabilitySummary,omitempty"`
-	Secrets              []DetectedPresSecret    `json:"secrets,omitempty"`
-	SBOMs                *spdxv23.Document       `json:"sboms,omitzero"`
+	Metadata             ImageMetadata                  `json:"metadata,omitzero"`
+	Vulnerabilities      []DetectedVulnerability        `json:"vulnerabilities,omitempty"`
+	VulnerabilitySummary *VulnerabilitySummary          `json:"vulnerabilitySummary,omitempty"`
+	Secrets              []DetectedPresSecret           `json:"secrets,omitempty"`
+	SBOMs                *spdxv23.Document              `json:"sboms,omitzero"`
+	CISScans             *docklereport.JsonOutputFormat `json:"cisScans,omitzero"`
 }
 
 type ImageMetadata struct {

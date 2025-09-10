@@ -42,6 +42,9 @@ func ScanImage(imageTag string, opts models.ScanOptions) {
 	// scan sboms
 	result.SyftySBOMs = SyftScanForSboms(imageTag)
 
+	// scan cis
+	result.CISScans = DockleScanForCIS(imageTag)
+
 	ra := NewReportAggregator(result)
 	agReport := ra.AggreagateReport()
 

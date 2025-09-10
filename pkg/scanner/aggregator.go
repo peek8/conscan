@@ -335,6 +335,9 @@ func (ra *ReportAggregrator) AggreagateReport() *models.ScanReport {
 
 	sr.VulnerabilitySummary = ra.generateVulnerabilitySummary(sr.Vulnerabilities)
 
+	// for cis scan no need to aggregate
+	sr.CISScans = ra.Results.CISScans
+
 	return sr
 }
 
