@@ -10,14 +10,14 @@ import (
 	"peek8.io/conscan/pkg/utils"
 )
 
-func ScanVuln(imageTag string) *models.VulnerabilityResult {
+func ScanVuln(imageTag string) *models.ScanResult {
 	// scan with trivy
 	tr := scanTrivyVuln(imageTag)
 
 	// Scan with grype
 	gr := scanGrypeVuln(imageTag)
 
-	return &models.VulnerabilityResult{
+	return &models.ScanResult{
 		TrivyResult: &tr,
 		GrypeResult: &gr,
 	}

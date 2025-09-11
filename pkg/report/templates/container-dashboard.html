@@ -298,6 +298,163 @@
             font-size: 0.85em;
         }
 
+        /*Storage Analysis*/
+        .storage-metrics {
+            background: rgba(255, 255, 255, 0.5);
+            padding: 15px;
+            border-radius: 8px;
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .metric-item {
+            display: flex;
+            justify-content: flex-start;
+            gap: 10px;
+            padding: 8px;
+            background: rgba(255, 255, 255, 0.7);
+            border-radius: 6px;
+            border-left: 3px solid #2563eb;
+        }
+
+        .metric-label {
+            font-weight: 600;
+            color: #1f2937;
+            min-width: 100px;
+            font-size: 0.85em;
+        }
+
+        .metric-value {
+            color: #4b5563;
+            font-weight: 500;
+            font-size: 0.85em;
+        }
+
+        .metric-value.efficiency {
+            color: #00e676;
+            font-weight: 600;
+        }
+
+        .metric-value.wasted {
+            color: #ff6d00;
+            font-weight: 600;
+        }
+
+        .metric-value.user-wasted {
+            color: #ffc400;
+            font-weight: 600;
+        }
+
+        .files-table {
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 6px;
+            overflow: hidden;
+            margin-bottom: 15px;
+        }
+
+        .table-header {
+            display: grid;
+            grid-template-columns: 60px 100px 1fr;
+            gap: 10px;
+            background: linear-gradient(135deg, #8b54b5, #d855a9, #d69669);;
+            color: white;
+            padding: 10px;
+            font-weight: 600;
+            font-size: 0.85em;
+        }
+
+        .table-row {
+            display: grid;
+            grid-template-columns: 60px 100px 1fr;
+            gap: 10px;
+            padding: 8px 10px;
+            border-bottom: 1px solid #e5e7eb;
+            font-size: 0.8em;
+            transition: background-color 0.3s ease;
+        }
+
+        .table-row:hover {
+            background: rgba(102, 126, 234, 0.1);
+        }
+
+        .table-row:last-child {
+            border-bottom: none;
+        }
+
+        .col-count {
+            text-align: center;
+            font-weight: 500;
+        }
+
+        .col-space {
+            text-align: right;
+            font-weight: 600;
+            color: #ff6d00;
+        }
+
+        .col-path {
+            font-family: monospace;
+            color: #4b5563;
+            word-break: break-all;
+        }
+
+        .results-list {
+            margin-bottom: 15px;
+        }
+
+        .result-item {
+            display: flex;
+            gap: 10px;
+            padding: 6px 10px;
+            margin-bottom: 5px;
+            background: rgba(255, 255, 255, 0.7);
+            border-radius: 4px;
+            font-size: 0.85em;
+        }
+
+        .result-status {
+            font-weight: 600;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 0.8em;
+            min-width: 50px;
+            text-align: center;
+        }
+
+        .result-item.pass .result-status {
+            background: #00e676;
+            color: white;
+        }
+
+        .result-item.skip .result-status {
+            background: #ffc400;
+            color: #333;
+        }
+
+        .result-item.fail .result-status {
+            background: #ff1744;
+            color: white;
+        }
+
+        .result-name {
+            color: #4b5563;
+            flex: 1;
+        }
+
+        .results-summary {
+            background: rgba(0, 230, 118, 0.1);
+            border: 1px solid #00e676;
+            border-radius: 6px;
+            padding: 10px;
+            font-size: 0.9em;
+            color: #1f2937;
+        }
+
         .summary-cards {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
@@ -344,6 +501,11 @@
             background-color: #e3177c;
             color: white;
         }
+        
+        .summary-card.storage-analysis{
+            background-color: #12b3e2;
+            color: white;
+        }
 
         
 
@@ -371,6 +533,7 @@
         .summary-card.medium-card .summary-label { color: #333; }
         .summary-card.exposed-secrets .summary-label { color: white; }
         .summary-card.cis-violation .summary-label { color: white; }
+        .summary-card.storage-analysis .summary-label { color: white; }
         .summary-card.low-card .summary-number,
         .summary-card.low-card .summary-label { color: white; }
 
@@ -468,6 +631,10 @@
             <div class="summary-card cis-violation">
                 <div class="summary-number">{{.CISScans.Details | len}}</div>
                 <div class="summary-label">CIS Violations</div>
+            </div>
+            <div class="summary-card storage-analysis">
+                <div class="summary-number">{{.StorageAnalysis.Efficiency}}</div>
+                <div class="summary-label">Storage Efficiency</div>
             </div>
             
         </div>
@@ -581,6 +748,74 @@
                         </div> -->
                     </div>
                     {{end}}
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-header">
+                <div class="section-title">Storage Analysis</div>
+                <div class="badge badge-medium">{{.StorageAnalysis.WastedBytesHuman}} Wasted</div>
+            </div>
+            <div class="section-content">
+                <div class="scrollable-container">
+                    <div class="storage-metrics">
+                        <h3 style="color: #1f2937; margin-bottom: 15px; font-size: 1.1em;">Analysis Summary</h3>
+                        
+                        <div class="metrics-grid">
+                            <div class="metric-item">
+                                <span class="metric-label">Efficiency:</span>
+                                <span class="metric-value efficiency">{{.StorageAnalysis.Efficiency}}%</span>
+                            </div>
+                            <div class="metric-item">
+                                <span class="metric-label">Wasted Bytes:</span>
+                                <span class="metric-value wasted">{{.StorageAnalysis.WastedBytesHuman}}</span>
+                            </div>
+                            <div class="metric-item">
+                                <span class="metric-label">User Wasted Percent:</span>
+                                <span class="metric-value user-wasted">{{.StorageAnalysis.UserWastedPercent}}%</span>
+                            </div>
+                        </div>
+
+                        <h4 style="color: #1f2937; margin: 20px 0 10px 0; font-size: 1em;">Inefficient Files:</h4>
+                        
+                        <div class="files-table">
+                            <div class="table-header">
+                                <div class="">Count</div>
+                                <div class="">Wasted Space</div>
+                                <div class="">File Path</div>
+                            </div>
+                            {{range $ef := .StorageAnalysis.InefficientFiles}}
+                            <div class="table-row">
+                                <div class="col-count">{{$ef.Count}}</div>
+                                <div class="col-space">{{$ef.WastedSpace}}</div>
+                                <div class="col-path">{{$ef.FilePath}}</div>
+                            </div>
+                            {{end}}
+                            
+                        </div>
+
+                        <h4 style="color: #1f2937; margin: 20px 0 10px 0; font-size: 1em;">Results:</h4>
+                        
+                        <div class="results-list">
+                            <div class="result-item pass">
+                                <span class="result-status">PASS</span>
+                                <span class="result-name">highestUserWastedPercent</span>
+                            </div>
+                            <div class="result-item skip">
+                                <span class="result-status">SKIP</span>
+                                <span class="result-name">highestWastedBytes: rule disabled</span>
+                            </div>
+                            <div class="result-item pass">
+                                <span class="result-status">PASS</span>
+                                <span class="result-name">lowestEfficiency</span>
+                            </div>
+                        </div>
+
+                        <div class="results-summary">
+                            <strong>Result: PASS</strong> [Total:3] [Passed:2] [Failed:0] [Warn:0] [Skipped:1]
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

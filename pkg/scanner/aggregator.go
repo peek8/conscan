@@ -29,7 +29,7 @@ import (
 )
 
 type VulnerabilitiesAggregrator struct {
-	Result *models.VulnerabilityResult
+	Result *models.ScanResult
 }
 
 func (vg *VulnerabilitiesAggregrator) AggregateVulnerabilities() []models.DetectedVulnerability {
@@ -291,7 +291,7 @@ func (sa *SbomsAggregator) AggregateSboms() *spdxv23.Document {
 }
 
 type ReportAggregrator struct {
-	Results *models.VulnerabilityResult
+	Results *models.ScanResult
 
 	va  *VulnerabilitiesAggregrator
 	sa  *SecretsAggregrator
@@ -337,6 +337,7 @@ func (ra *ReportAggregrator) AggreagateReport() *models.ScanReport {
 
 	// for cis scan no need to aggregate
 	sr.CISScans = ra.Results.CISScans
+	sr.StorageAnalysis = ra.Results.StorageAnalysis
 
 	return sr
 }
@@ -358,7 +359,7 @@ func (ra *ReportAggregrator) generateVulnerabilitySummary(vulns []models.Detecte
 	}
 }
 
-func NewReportAggregator(result *models.VulnerabilityResult) *ReportAggregrator {
+func NewReportAggregator(result *models.ScanResult) *ReportAggregrator {
 	return &ReportAggregrator{
 		Results: result,
 		va:      &VulnerabilitiesAggregrator{Result: result},

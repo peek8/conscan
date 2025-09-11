@@ -32,6 +32,7 @@ type ScanReport struct {
 	Secrets              []DetectedPresSecret           `json:"secrets,omitempty"`
 	SBOMs                *spdxv23.Document              `json:"sboms,omitzero"`
 	CISScans             *docklereport.JsonOutputFormat `json:"cisScans,omitzero"`
+	StorageAnalysis      *StorageAnalysis               `json:"storageAnalysis,omitzero"`
 }
 
 type ImageMetadata struct {
