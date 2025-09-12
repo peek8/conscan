@@ -52,6 +52,7 @@ var funcMap = template.FuncMap{
 	"getSecretLocation":     getSecretLocation,
 	"htmlLineBreak":         htmlLineBreak,
 	"slicesToHtmlLineBreak": slicesToHtmlLineBreak,
+	"twoDecimalPercentage":  twoDecimalPercentage,
 }
 
 func getTitle(vuln models.DetectedVulnerability) string {
@@ -72,6 +73,10 @@ func htmlLineBreak(text string) template.HTML {
 
 func slicesToHtmlLineBreak(text []string) template.HTML {
 	return template.HTML(strings.Join(text, "<br>"))
+}
+
+func twoDecimalPercentage(num float64) string {
+	return fmt.Sprintf("%.2f%%", num)
 }
 
 func emptyValuePlaceholder(s string) string {

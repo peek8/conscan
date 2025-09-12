@@ -78,7 +78,7 @@
         }
 
         .info-item {
-            background: linear-gradient(to top, #804ed2 0%, #5a84eb 100%);
+            background: linear-gradient(135deg, #7078e0, #806ce2, #5b4ddd);
             /*background: linear-gradient(135deg, #dbeafe, #bfdbfe, #93c5fd);
             background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);*/
             color: white;
@@ -633,7 +633,7 @@
                 <div class="summary-label">CIS Violations</div>
             </div>
             <div class="summary-card storage-analysis">
-                <div class="summary-number">{{.StorageAnalysis.Efficiency}}</div>
+                <div class="summary-number">{{.StorageAnalysis.Efficiency | twoDecimalPercentage}}</div>
                 <div class="summary-label">Storage Efficiency</div>
             </div>
             
@@ -765,7 +765,7 @@
                         <div class="metrics-grid">
                             <div class="metric-item">
                                 <span class="metric-label">Efficiency:</span>
-                                <span class="metric-value efficiency">{{.StorageAnalysis.Efficiency}}%</span>
+                                <span class="metric-value efficiency">{{.StorageAnalysis.Efficiency | twoDecimalPercentage}}</span>
                             </div>
                             <div class="metric-item">
                                 <span class="metric-label">Wasted Bytes:</span>
@@ -773,7 +773,7 @@
                             </div>
                             <div class="metric-item">
                                 <span class="metric-label">User Wasted Percent:</span>
-                                <span class="metric-value user-wasted">{{.StorageAnalysis.UserWastedPercent}}%</span>
+                                <span class="metric-value user-wasted">{{.StorageAnalysis.UserWastedPercent | twoDecimalPercentage }}</span>
                             </div>
                         </div>
 

@@ -1,6 +1,10 @@
 package models
 
 import (
+	"regexp"
+	"strconv"
+	"strings"
+
 	trivytypes "github.com/aquasecurity/trivy/pkg/types"
 	docklereport "github.com/goodwithtech/dockle/pkg/report"
 	spdxv23 "github.com/spdx/tools-golang/spdx/v2/v2_3"
@@ -32,6 +36,18 @@ type InefficientFile struct {
 	Count       int    `json:"count"`
 	WastedSpace string `json:"wasted_space"`
 	FilePath    string `json:"file_path"`
+}
+
+func (ief *InefficientFile) IsZeroSpace() bool {
+	fileRe := regexp.MustCompile(`([\d.]+)\s+[\w]+?`)
+
+	if matches := fileRe.FindStringSubmatch(strings.TrimSpace(ief.WastedSpace)); matches != nil {
+		if bytes, err := strconv.ParseFloat(matches[1], 64); err == nil {
+			return bytes < 1
+		}
+	}
+
+	return false
 }
 
 // TestResult represents a test result from dive

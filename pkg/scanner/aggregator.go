@@ -290,12 +290,29 @@ func (sa *SbomsAggregator) AggregateSboms() *spdxv23.Document {
 	return &res
 }
 
+type StorageAggregator struct {
+	StorageAnalysis *models.StorageAnalysis
+}
+
+func (sta *StorageAggregator) AggregateStorage() *models.StorageAnalysis {
+	if sta.StorageAnalysis == nil {
+		return nil
+	}
+
+	sta.StorageAnalysis.InefficientFiles = lo.Filter(sta.StorageAnalysis.InefficientFiles, func(f models.InefficientFile, index int) bool {
+		return !f.IsZeroSpace()
+	})
+
+	return sta.StorageAnalysis
+}
+
 type ReportAggregrator struct {
 	Results *models.ScanResult
 
 	va  *VulnerabilitiesAggregrator
 	sa  *SecretsAggregrator
 	sba *SbomsAggregator
+	sta *StorageAggregator
 }
 
 func (ra *ReportAggregrator) newReport() *models.ScanReport {
@@ -337,7 +354,7 @@ func (ra *ReportAggregrator) AggreagateReport() *models.ScanReport {
 
 	// for cis scan no need to aggregate
 	sr.CISScans = ra.Results.CISScans
-	sr.StorageAnalysis = ra.Results.StorageAnalysis
+	sr.StorageAnalysis = ra.sta.AggregateStorage()
 
 	return sr
 }
@@ -365,5 +382,6 @@ func NewReportAggregator(result *models.ScanResult) *ReportAggregrator {
 		va:      &VulnerabilitiesAggregrator{Result: result},
 		sa:      &SecretsAggregrator{TrivyResult: result.TrivyResult},
 		sba:     &SbomsAggregator{SyftySBOMs: result.SyftySBOMs},
+		sta:     &StorageAggregator{StorageAnalysis: result.StorageAnalysis},
 	}
 }
