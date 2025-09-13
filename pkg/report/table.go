@@ -55,6 +55,7 @@ func (tw TableWriter) Write(_ context.Context, report models.ScanReport) error {
 		VulnerabilitiesRenderer{buf: buf},
 		SecretsRenderer{buf: buf},
 		CISRenderer{buf: buf},
+		StorageRenderer{buf: buf},
 		//SBOMRenderer{buf: buf},
 	}
 
@@ -218,6 +219,32 @@ func (cr CISRenderer) Render(report models.ScanReport) error {
 	for _, cis := range report.CISScans.Details {
 		t.AppendRow(table.Row{
 			cis.Code, cis.Title, getCISLevelColoredText(cis.Level), wrapText(strings.Join(cis.Alerts, "\n"), 100),
+		})
+		t.AppendSeparator()
+	}
+
+	t.Render()
+
+	return nil
+}
+
+type StorageRenderer struct {
+	buf io.Writer
+}
+
+func (sr StorageRenderer) Render(report models.ScanReport) error {
+	addHeader(sr.buf, "Storage Analysis:")
+	addInfo(sr.buf, fmt.Sprintf("Efficiency: %.2f%%", report.StorageAnalysis.Efficiency))
+	addInfo(sr.buf, fmt.Sprintf("Wasted Bytes: %s", report.StorageAnalysis.WastedBytesHuman))
+	addInfo(sr.buf, fmt.Sprintf("User Wasted Percent: %.2f%%", report.StorageAnalysis.UserWastedPercent))
+
+	addInfo(sr.buf, "Inefficient Files:")
+
+	t := newTable(sr.buf)
+	t.AppendHeader(table.Row{"Count", "Wasted Space", "File Path"})
+	for _, ief := range report.StorageAnalysis.InefficientFiles {
+		t.AppendRow(table.Row{
+			ief.Count, ief.WastedSpace, ief.FilePath,
 		})
 		t.AppendSeparator()
 	}
