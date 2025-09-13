@@ -37,11 +37,44 @@ func (vg *VulnerabilitiesAggregrator) AggregateVulnerabilities() []models.Detect
 	grypeVulns := vg.normalizeGripyVulnerabilities()
 
 	vulns := vg.mergeVulnerabilities(trivyVulns, grypeVulns)
+	vulns = vg.omitTooManyVulnerabilities(vulns)
+
 	sort.Slice(vulns, func(i, j int) bool {
 		return vulns[i].CvssScore > vulns[j].CvssScore
 	})
 
 	return vulns
+}
+
+func (vg *VulnerabilitiesAggregrator) omitTooManyVulnerabilities(vulns []models.DetectedVulnerability) []models.DetectedVulnerability {
+	// if there are too many vulnerabilities, omit based and priority
+	if len(vulns) < 50 {
+		return vulns
+	}
+
+	isSeverity := func(sev string) func(models.DetectedVulnerability) bool {
+		return func(v models.DetectedVulnerability) bool {
+			return strings.ToLower(v.Severity) == sev
+		}
+	}
+	negligibleCount := lo.CountBy(vulns, isSeverity("negligible"))
+	unknownCount := lo.CountBy(vulns, isSeverity("unknown"))
+
+	res := vulns
+	if len(res)-negligibleCount > 5 {
+		res = lo.Filter(vulns, func(v models.DetectedVulnerability, index int) bool {
+			return strings.ToLower(v.Severity) != "negligible"
+		})
+	}
+
+	// If there are more than 50 vulnerabilities omitting the unknowns, omit those as well
+	if len(res)-unknownCount > 50 {
+		res = lo.Filter(res, func(v models.DetectedVulnerability, index int) bool {
+			return strings.ToLower(v.Severity) != "unknown"
+		})
+	}
+
+	return res
 }
 
 func (vg *VulnerabilitiesAggregrator) mergeVulnerabilities(trivyVulns, grypeVulns []models.DetectedVulnerability) []models.DetectedVulnerability {

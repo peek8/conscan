@@ -4,10 +4,6 @@
  * Created Date: Tuesday, August 19th 2025, 6:15:04 pm
  * Author: Md. Asraful Haque
  *
- * -----
- * Last Modified: Tuesday, 2nd September 2025 6:47:03 pm
- * Modified By: Md. Asraful Haque
- * -----
  */
 
 // Package scanner scans the container image for vulnerabilities, securities, licenses etc
