@@ -27,6 +27,16 @@ var severityColors = map[string]color.Attribute{
 	models.SeverityNameMedium:   color.FgYellow,
 	models.SeverityNameLow:      color.FgGreen,
 	models.SeverityNameUnknown:  color.FgCyan,
+	//models.SeverityNameNegligible:  color.FgHiBlue,
+}
+
+var cisLevelColors = map[string]color.Attribute{
+	"FATAL":  color.FgRed,
+	"WARN":   color.FgHiMagenta,
+	"INFO":   color.FgYellow,
+	"SKIP":   color.FgGreen,
+	"IGNORE": color.FgCyan,
+	"PASS":   color.FgCyan,
 }
 
 type TableWriter struct {
@@ -44,7 +54,8 @@ func (tw TableWriter) Write(_ context.Context, report models.ScanReport) error {
 		VulnerabilitySummaryRenderer{buf: buf},
 		VulnerabilitiesRenderer{buf: buf},
 		SecretsRenderer{buf: buf},
-		SBOMRenderer{buf: buf},
+		CISRenderer{buf: buf},
+		//SBOMRenderer{buf: buf},
 	}
 
 	for _, renderer := range renderers {
@@ -194,6 +205,28 @@ func (sbr SBOMRenderer) Render(report models.ScanReport) error {
 	return nil
 }
 
+type CISRenderer struct {
+	buf io.Writer
+}
+
+func (cr CISRenderer) Render(report models.ScanReport) error {
+	addHeader(cr.buf, "CIS Benchmark Violations: ")
+
+	t := newTable(cr.buf)
+
+	t.AppendHeader(table.Row{"CIS ID", "Title", "Severity", "Description"})
+	for _, cis := range report.CISScans.Details {
+		t.AppendRow(table.Row{
+			cis.Code, cis.Title, getCISLevelColoredText(cis.Level), wrapText(strings.Join(cis.Alerts, "\n"), 100),
+		})
+		t.AppendSeparator()
+	}
+
+	t.Render()
+
+	return nil
+}
+
 func newTable(out io.Writer) table.Writer {
 	t := table.NewWriter()
 	t.SetOutputMirror(out)
@@ -208,6 +241,12 @@ func getSeverityColoredText(severity string) string {
 	severity = strings.ToUpper(severity)
 
 	return getColoredBold(severity, severityColors[severity])
+}
+
+func getCISLevelColoredText(severity string) string {
+	severity = strings.ToUpper(severity)
+
+	return getColoredBold(severity, cisLevelColors[severity])
 }
 
 func getColored(text string, colors ...color.Attribute) string {
