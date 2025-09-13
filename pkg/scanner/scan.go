@@ -43,7 +43,7 @@ func ScanImage(imageTag string, opts models.ScanOptions) {
 
 	result.StorageAnalysis = DiveScanForStorage(imageTag)
 
-	ra := NewReportAggregator(result)
+	ra := report.NewReportAggregator(result)
 	agReport := ra.AggreagateReport()
 
 	err := report.Write(context.Background(), *agReport, opts)

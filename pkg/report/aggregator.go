@@ -4,13 +4,9 @@
  * Created Date: Tuesday, September 2nd 2025, 6:46:14 pm
  * Author: Md. Asraful Haque
  *
- * -----
- * Last Modified: Tuesday, 2nd September 2025 6:46:14 pm
- * Modified By: Md. Asraful Haque
- * -----
  */
 
-package scanner
+package report
 
 import (
 	"fmt"
@@ -20,6 +16,7 @@ import (
 	trivydbtypes "github.com/aquasecurity/trivy-db/pkg/types"
 	trivyfanaltypes "github.com/aquasecurity/trivy/pkg/fanal/types"
 	trivytypes "github.com/aquasecurity/trivy/pkg/types"
+	docklereport "github.com/goodwithtech/dockle/pkg/report"
 	"github.com/samber/lo"
 	spdxv23 "github.com/spdx/tools-golang/spdx/v2/v2_3"
 
@@ -39,8 +36,20 @@ func (vg *VulnerabilitiesAggregrator) AggregateVulnerabilities() []models.Detect
 	vulns := vg.mergeVulnerabilities(trivyVulns, grypeVulns)
 	vulns = vg.omitTooManyVulnerabilities(vulns)
 
+	vulns = vg.sortBySeverity(vulns)
+
+	return vulns
+}
+
+func (vg *VulnerabilitiesAggregrator) sortBySeverity(vulns []models.DetectedVulnerability) []models.DetectedVulnerability {
+	vulns = lo.Map(vulns, func(v models.DetectedVulnerability, _ int) models.DetectedVulnerability {
+		v.SeverityInt = models.ParseSeverity(v.Severity)
+
+		return v
+	})
+
 	sort.Slice(vulns, func(i, j int) bool {
-		return vulns[i].CvssScore > vulns[j].CvssScore
+		return vulns[i].SeverityInt > vulns[j].SeverityInt
 	})
 
 	return vulns
@@ -339,6 +348,14 @@ func (sta *StorageAggregator) AggregateStorage() *models.StorageAnalysis {
 	return sta.StorageAnalysis
 }
 
+type CISAggregator struct {
+	CISScans *docklereport.JsonOutputFormat
+}
+
+func (ca *CISAggregator) AggregateCIS() *docklereport.JsonOutputFormat {
+	return ca.CISScans
+}
+
 type ReportAggregrator struct {
 	Results *models.ScanResult
 
@@ -346,6 +363,7 @@ type ReportAggregrator struct {
 	sa  *SecretsAggregrator
 	sba *SbomsAggregator
 	sta *StorageAggregator
+	ca  *CISAggregator
 }
 
 func (ra *ReportAggregrator) newReport() *models.ScanReport {
@@ -379,15 +397,15 @@ func (ra *ReportAggregrator) newReport() *models.ScanReport {
 
 func (ra *ReportAggregrator) AggreagateReport() *models.ScanReport {
 	sr := ra.newReport()
+
 	sr.Vulnerabilities = ra.va.AggregateVulnerabilities()
 	sr.Secrets = ra.sa.ExtractSecrets()
 	sr.SBOMs = ra.sba.AggregateSboms()
-
-	sr.VulnerabilitySummary = ra.generateVulnerabilitySummary(sr.Vulnerabilities)
-
-	// for cis scan no need to aggregate
-	sr.CISScans = ra.Results.CISScans
+	sr.CISScans = ra.ca.AggregateCIS()
 	sr.StorageAnalysis = ra.sta.AggregateStorage()
+
+	// this needs to be done after AggregateVulnerabilities
+	sr.VulnerabilitySummary = ra.generateVulnerabilitySummary(sr.Vulnerabilities)
 
 	return sr
 }
@@ -416,5 +434,6 @@ func NewReportAggregator(result *models.ScanResult) *ReportAggregrator {
 		sa:      &SecretsAggregrator{TrivyResult: result.TrivyResult},
 		sba:     &SbomsAggregator{SyftySBOMs: result.SyftySBOMs},
 		sta:     &StorageAggregator{StorageAnalysis: result.StorageAnalysis},
+		ca:      &CISAggregator{CISScans: result.CISScans},
 	}
 }
