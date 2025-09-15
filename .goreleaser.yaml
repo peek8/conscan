@@ -1,0 +1,63 @@
+# .goreleaser.yml
+project_name: conscan
+
+before:
+  hooks:
+    - go mod tidy
+
+builds:
+  - id: conscan
+    main: ./cmd/conscan
+    binary: conscan
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - amd64
+      - arm64
+    ldflags:
+      - -s -w
+      - -X main.version={{.Version}}
+      - -X main.commit={{.Commit}}
+      - -X main.date={{.Date}}
+
+dockers:
+  - image_templates:
+      - "docker.io/{{ .Env.DOCKER_USERNAME }}/conscan:{{ .Version }}"
+      - "docker.io/{{ .Env.DOCKER_USERNAME }}/conscan:latest"
+    build_flag_templates:
+      - --build-arg VERSION={{ .Version }}
+      - --build-arg COMMIT={{ .Commit }}
+      - --build-arg BUILD_DATE={{ .Date }}
+    goos: linux
+    goarch: amd64
+  - image_templates:
+      - "docker.io/{{ .Env.DOCKER_USERNAME }}/conscan:{{ .Version }}-arm64"
+    build_flag_templates:
+      - --build-arg VERSION={{ .Version }}
+      - --build-arg COMMIT={{ .Commit }}
+      - --build-arg BUILD_DATE={{ .Date }}
+    goos: linux
+    goarch: arm64
+
+changelog:
+  sort: asc
+  use: github
+
+release:
+  github:
+    owner: your-github-username
+    name: conscan
+
+# optional: Homebrew tap if you want to distribute CLI
+brews:
+  - name: conscan
+    tap:
+      owner: your-github-username
+      name: homebrew-tap
+    commit_author:
+      name: conscan-bot
+      email: bot@conscan.io
+    description: "Conscan is a container security scanning tool."
+    homepage: "https://github.com/your-github-username/conscan"

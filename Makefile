@@ -1,49 +1,41 @@
-# Binary name
-BINARY_NAME=conscan
+OWNER = peek8.io
+PROJECT = conscan
 
-# Go related variables
-GOBASE := $(shell pwd)
-GOBIN  := $(GOBASE)/bin
-GOFILES := $(wildcard *.go)
+TOOL_DIR = .tool
+BINNY = $(TOOL_DIR)/binny
+TASK = $(TOOL_DIR)/task
 
-.PHONY: all build run clean test
+.DEFAULT_GOAL := make-default
 
-all: build
 
-## Build the Go binary
-build: fmt vet ## Build manager binary.
-	@echo ">> Building $(BINARY_NAME)..."
-	@mkdir -p $(GOBIN)
-	@go build -o $(GOBIN)/$(BINARY_NAME) .
+$(BINNY):
+	@mkdir -p $(TOOL_DIR)
+	@curl -sSfL https://raw.githubusercontent.com/anchore/binny/main/install.sh | sh -s -- -b $(TOOL_DIR)
 
-.PHONY: fmt
-fmt: ## Run go fmt against code.
-	go fmt ./...
+# note: we need to assume that binny and task have not already been installed
+.PHONY: task
+$(TASK) task: $(BINNY)
+	@$(BINNY) install task -q
 
-.PHONY: vet
-vet: ## Run go vet against code.
-	go vet ./...
+# this is a bootstrapping catch-all, where if the target doesn't exist, we'll ensure the tools are installed and then try again
+%:
+	@make --silent $(TASK)
+	@$(TASK) $@
 
-.PHONY: run
-run: build ## Run a controller from your host.
-	@$(GOBIN)/$(BINARY_NAME)
+## Shim targets #################################
 
-## Run tests
-test:
-	@echo ">> Running tests..."
-	@go test ./... -v
+.PHONY: make-default
+make-default: $(TASK)
+	@# run the default task in the taskfile
+	@$(TASK)
 
-## Remove generated files
-clean:
-	@echo ">> Cleaning up..."
-	@rm -rf $(GOBIN)
+# to use the task in make command, lets wrap the superior `task` tool
+TASKS := $(shell bash -c "test -f $(TASK) && $(TASK) -l | grep '^\* ' | cut -d' ' -f2 | tr -d ':' | tr '\n' ' '" ) $(shell bash -c "test -f $(TASK) && $(TASK) -l | grep 'aliases:' | cut -d ':' -f 3 | tr '\n' ' ' | tr -d ','")
 
-## Cross compile (Linux example)
-build-linux:
-	@echo ">> Building for linux/amd64..."
-	@GOOS=linux GOARCH=amd64 go build -o $(GOBIN)/$(BINARY_NAME)-linux .
+.PHONY: $(TASKS)
+$(TASKS): $(TASK)
+	@$(TASK) $@
 
-## Cross compile (Mac example)
-build-mac:
-	@echo ">> Building for darwin/amd64..."
-	@GOOS=darwin GOARCH=amd64 go build -o $(GOBIN)/$(BINARY_NAME)-mac .
+
+help: $(TASK)
+	@$(TASK) -l

@@ -19,10 +19,14 @@ dist/
 # Package files
 *.jar
 
-# dist
+# dist/temp files
 target/
 dist/
 bin/
+.tool
+.tmp
+.snapshot
+
 
 # JetBrains IDE
 .idea/
