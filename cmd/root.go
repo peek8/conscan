@@ -62,7 +62,7 @@ func Root(identiifcaton Identification) *cobra.Command {
 		},
 	}
 
-	rootCmd.Flags().BoolVarP(&showVersion, "Version", "v", false, "Show Version")
+	rootCmd.Flags().BoolVarP(&showVersion, "version", "v", false, "Show Version")
 
 	return rootCmd
 }

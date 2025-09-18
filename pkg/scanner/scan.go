@@ -41,7 +41,7 @@ func ScanImage(imageTag string, opts models.ScanOptions) {
 	// scan cis
 	result.CISScans = DockleScanForCIS(imageTag)
 
-	result.StorageAnalysis = DiveScanForStorage(imageTag)
+	result.StorageAnalysis = ScanForStorage(imageTag)
 
 	ra := report.NewReportAggregator(result)
 	agReport := ra.AggreagateReport()

@@ -5,7 +5,7 @@ vars:
   VERSION: v0.1.0-alpha1
   COMMIT: {sh: git rev-parse --short HEAD}
   BUILD_DATE: {sh: date -u +%Y-%m-%dT%H:%M:%SZ}
-  IMAGE: docker.io/{{.DOCKER_USERNAME}}/conscan
+  IMAGE: docker.io/peek8/conscan
 
   # static file dirs
   TOOL_DIR: .tool

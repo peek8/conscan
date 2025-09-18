@@ -11,29 +11,102 @@ package scanner
 import (
 	"bufio"
 	"fmt"
-	"log"
+	"os"
+	"path/filepath"
 	"regexp"
 	"strconv"
 	"strings"
 
+	"github.com/google/go-containerregistry/pkg/authn"
+	"github.com/google/go-containerregistry/pkg/legacy/tarball"
+	"github.com/google/go-containerregistry/pkg/name"
+	"github.com/google/go-containerregistry/pkg/v1/remote"
 	"peek8.io/conscan/pkg/models"
 	"peek8.io/conscan/pkg/utils"
 )
 
-func DiveScanForStorage(imageTag string) *models.StorageAnalysis {
-	// run the scan for cis
-	output, err, errStr := utils.ExecuteCommand("dive", "--ci", imageTag)
-
-	if err != nil {
-		log.Fatalf("Command execution failed: %v\nStderr: %s", err, errStr)
-	}
-
-	diveAnalysis, err := parseDiveOutput(output)
+func ScanForStorage(imageTag string) *models.StorageAnalysis {
+	sa, err := diveScanForStorage(imageTag)
 	if err != nil {
 		utils.ExitOnError(err)
 	}
 
-	return diveAnalysis
+	return sa
+}
+
+func diveScanForStorage(imageTag string) (*models.StorageAnalysis, error) {
+	// If there is no image pull client fetch the image and store it as tarball
+	if !utils.IsAnyImagePullClient() {
+		return diveScanWithTarball(imageTag)
+	}
+	// run the scan for cis
+	output, err, _ := utils.ExecuteCommandIgnoreExitCode("dive", "--ci", imageTag)
+
+	// if there is an error, fallback to tarball
+	if err != nil {
+		return diveScanWithTarball(imageTag)
+	}
+
+	return parseDiveOutput(output)
+}
+
+func diveScanWithTarball(imageTag string) (*models.StorageAnalysis, error) {
+	tmpGen := utils.NewTempDirGenerator("dive")
+	// clean up temp dir
+	defer tmpGen.Cleanup()
+
+	tmpDir, _ := tmpGen.GetOrCreateRootLocation()
+	tarFile, err := saveDockerTar(imageTag, tmpDir)
+	if err != nil {
+		return nil, fmt.Errorf("dive Error while saving docker archive: %v", err)
+	}
+
+	// run the scan for cis
+	output, err, errStr := utils.ExecuteCommandIgnoreExitCode("dive", "--ci", "--source", "docker-archive", tarFile)
+	if err != nil {
+		return nil, fmt.Errorf("command execution failed: %v\nStderr: %s", err, errStr)
+	}
+
+	return parseDiveOutput(output)
+
+}
+
+// SaveDockerTar pulls an image and writes it as Docker-compatible tar for Dive
+func saveDockerTar(imageRef, tmpDir string) (string, error) {
+	// Parse image reference
+	ref, err := name.ParseReference(imageRef)
+	if err != nil {
+		return "", fmt.Errorf("parsing image reference: %w", err)
+	}
+
+	outputTar := filepath.Join(tmpDir, ref.Identifier()+".tar")
+
+	// TODO: handle restricted repository
+	// var auth = authn.Anonymous
+	// if username != "" && password != "" {
+	// 	auth = &authn.Basic{Username: username, Password: password}
+	// }
+
+	// Pull image from registry
+	img, err := remote.Image(ref, remote.WithAuth(authn.Anonymous))
+	if err != nil {
+		return "", fmt.Errorf("pulling image failed: %w", err)
+	}
+
+	// Create output tar
+	f, err := os.Create(outputTar)
+	if err != nil {
+		return "", fmt.Errorf("cannot create tar file: %w", err)
+	}
+	defer f.Close()
+
+	// Write Docker-compatible tar
+	if err := tarball.Write(ref, img, f); err != nil {
+		return "", fmt.Errorf("writing docker tar failed: %w", err)
+	}
+
+	//fmt.Println("Image saved as Docker-compatible tar:", outputTar)
+	return outputTar, nil
 }
 
 // parseDiveOutput parses the dive command output and returns structured data
@@ -135,7 +208,7 @@ func parseDiveOutput(output string) (*models.StorageAnalysis, error) {
 	}
 
 	if err := scanner.Err(); err != nil {
-		return nil, fmt.Errorf("error scanning input: %w", err)
+		return nil, fmt.Errorf("esrror while scanning parsing Dive output: %w", err)
 	}
 
 	return analysis, nil

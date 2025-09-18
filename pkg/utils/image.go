@@ -9,7 +9,10 @@
 // Package utils contains utils function
 package utils
 
-import "fmt"
+import (
+	"fmt"
+	"os/exec"
+)
 
 const (
 	// Decimal
@@ -28,4 +31,18 @@ func HumanReadableSize(bytes int64) string {
 	}
 
 	return fmt.Sprintf("%d GB", bytes/GB)
+}
+
+func IsDockerClientBinaryAvailable() bool {
+	_, err := exec.LookPath("docker")
+	return err == nil
+}
+
+func IsPodmanClientBinaryAvailable() bool {
+	_, err := exec.LookPath("podman")
+	return err == nil
+}
+
+func IsAnyImagePullClient() bool {
+	return IsDockerClientBinaryAvailable() || IsPodmanClientBinaryAvailable()
 }
