@@ -6,21 +6,17 @@ import (
 
 	trivytypes "github.com/aquasecurity/trivy/pkg/types"
 	"peek8.io/conscan/pkg/grypemodels"
-	"peek8.io/conscan/pkg/models"
 	"peek8.io/conscan/pkg/utils"
 )
 
-func ScanVuln(imageTag string) *models.ScanResult {
+func ScanVuln(imageTag string) (*trivytypes.Report, *grypemodels.Document) {
 	// scan with trivy
 	tr := scanTrivyVuln(imageTag)
 
 	// Scan with grype
 	gr := scanGrypeVuln(imageTag)
 
-	return &models.ScanResult{
-		TrivyResult: &tr,
-		GrypeResult: &gr,
-	}
+	return &tr, &gr
 }
 
 func scanTrivyVuln(imageTag string) trivytypes.Report {

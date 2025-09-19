@@ -11,10 +11,16 @@ package scanner
 
 import (
 	"context"
-	"log"
+	"fmt"
+	"io"
+	"os"
 
+	"github.com/briandowns/spinner"
+	"github.com/fatih/color"
+	"peek8.io/conscan/pkg/log"
 	"peek8.io/conscan/pkg/models"
 	"peek8.io/conscan/pkg/report"
+	"peek8.io/conscan/pkg/utils"
 )
 
 // Trivy Scanner Flag
@@ -32,23 +38,70 @@ const (
 )
 
 func ScanImage(imageTag string, opts models.ScanOptions) {
-	// scan vulnerability that also include secrets from trivy
-	result := ScanVuln(imageTag)
+	tasks := []ScanTask{
+		{
+			name: "Scan Vulnerabilities and Secrets",
+			scanFunc: func(res *models.ScanResult) error {
+				// scan vulnerability that also include secrets from trivy
+				res.TrivyResult, res.GrypeResult = ScanVuln(imageTag)
+				return nil
+			},
+		},
+		{
+			name: "Scan Packages",
+			scanFunc: func(res *models.ScanResult) error {
+				res.SyftySBOMs = SyftScanForSboms(imageTag)
+				return nil
+			},
+		},
+		{
+			name: "Scan Storages",
+			scanFunc: func(res *models.ScanResult) error {
+				res.StorageAnalysis = ScanForStorage(imageTag)
+				return nil
+			},
+		},
+		{
+			name: "Scan CIS Benchmark",
+			scanFunc: func(res *models.ScanResult) error {
+				res.CISScans = DockleScanForCIS(imageTag)
+				return nil
+			},
+		},
+	}
 
-	// scan sboms
-	result.SyftySBOMs = SyftScanForSboms(imageTag)
+	result := &models.ScanResult{}
+	out := os.Stderr
 
-	// scan cis
-	result.CISScans = DockleScanForCIS(imageTag)
+	tickColor := color.New(color.FgHiGreen).Sprint("✔")
+	for _, st := range tasks {
+		spinner := log.StartSprinner(st.name, log.MagnifyGlasses, out)
+		err := st.scanFunc(result)
 
-	result.StorageAnalysis = ScanForStorage(imageTag)
+		spinner.Stop()
+		if err != nil {
+			utils.ExitOnError(err)
+		}
 
+		fmt.Fprintf(io.Writer(out), "[%s] %s finished\n", tickColor, st.name)
+	}
+
+	// Now generating Report
+	spinner := log.StartSprinner("Generate Report", spinner.CharSets[14], out)
 	ra := report.NewReportAggregator(result)
 	agReport := ra.AggreagateReport()
+	spinner.Stop()
+	fmt.Fprintf(io.Writer(out), "[✔] %s finished\n", "Generate Report")
 
 	err := report.Write(context.Background(), *agReport, opts)
 
 	if err != nil {
-		log.Fatalf("Error occurred while Writing reports: %v", err)
+		utils.ExitOnError(err)
 	}
+
+}
+
+type ScanTask struct {
+	name     string
+	scanFunc func(res *models.ScanResult) error
 }

@@ -28,6 +28,7 @@ var SupportedFormats = []OutputFormat{
 type ScanOptions struct {
 	Format     OutputFormat
 	OutputFile string
+	Quiet      bool
 }
 
 func (opt ScanOptions) Validate() (string, bool) {
