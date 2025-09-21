@@ -2,6 +2,8 @@
 version: "3"
 
 vars:
+  PROJECT: conscan
+  # The following vars are used only for binary-build
   VERSION: v0.1.0-alpha1
   COMMIT: {sh: git rev-parse --short HEAD}
   BUILD_DATE: {sh: date -u +%Y-%m-%dT%H:%M:%SZ}
@@ -118,11 +120,43 @@ tasks:
       - "{{ .GOLANGCI_LINT }} run --tests=false"
       
   ### Build tasks
-  build:
+  binary-build:
     desc: Build Go binary with versioning
     cmds:
       - go build -ldflags "-s -w -X main.version={{.VERSION}} -X main.commit={{.COMMIT}} -X main.date={{.BUILD_DATE}}" -o bin/conscan .
+  
+  build:
+    desc: Build the project
+    deps: [tools, tmpdir]
+    generates:
+      - "{{ .PROJECT }}"
+    cmds:
+      - silent: true
+        cmd: |
+          echo "dist: {{ .SNAPSHOT_DIR }}" > {{ .TMP_DIR }}/goreleaser.yaml
+          cat .goreleaser.yaml >> {{ .TMP_DIR }}/goreleaser.yaml
 
+      - "{{ .BUILD_CMD }}"
+      
+  snapshot:
+    desc: Create a snapshot release
+    aliases:
+      - build
+    deps: [tools, tmpdir]
+    sources:
+      - "**/*.go"
+      - ".goreleaser.yaml"
+      - "Dockerfile"
+    method: checksum
+    cmds:
+      - silent: true
+        cmd: |
+          echo "dist: {{ .SNAPSHOT_DIR }}" > {{ .TMP_DIR }}/goreleaser.yaml
+          cat .goreleaser.yaml >> {{ .TMP_DIR }}/goreleaser.yaml
+
+      - "{{ .SNAPSHOT_CMD }}"
+      - cmd: docker image prune -f 
+      
   run:
     desc: Run locally
     cmds:

@@ -1,5 +1,19 @@
-# .goreleaser.yml
+version: 2
+
+release:
+  # If set to auto, will mark the release as not ready for production in case there is an indicator for this in the
+  # tag e.g. v1.0.0-rc1 .If set to true, will mark the release as not ready for production.
+  prerelease: true
+
+  # If set to true, will not auto-publish the release. This is done to allow us to review the changelog before publishing.
+  draft: true
+
 project_name: conscan
+
+env:
+  # required to support multi architecture docker builds
+  - DOCKER_CLI_EXPERIMENTAL=enabled
+  - CGO_ENABLED=0
 
 before:
   hooks:
@@ -7,8 +21,10 @@ before:
 
 builds:
   - id: conscan
-    main: ./cmd/conscan
+    dir: ./
     binary: conscan
+    env:
+      - CGO_ENABLED=0
     goos:
       - linux
       - darwin
@@ -16,48 +32,126 @@ builds:
     goarch:
       - amd64
       - arm64
+      - ppc64le
     ldflags:
-      - -s -w
-      - -X main.version={{.Version}}
-      - -X main.commit={{.Commit}}
-      - -X main.date={{.Date}}
+      -w
+      -s
+      -extldflags '-static'
+      -X main.version={{.Version}}
+      -X main.gitCommit={{.Commit}}
+      -X main.buildDate={{.Date}}
+
+archives:
+  - formats: [tar.gz]
+    format_overrides:
+      - goos: windows
+        formats: [zip]
 
 dockers:
-  - image_templates:
-      - "docker.io/{{ .Env.DOCKER_USERNAME }}/conscan:{{ .Version }}"
-      - "docker.io/{{ .Env.DOCKER_USERNAME }}/conscan:latest"
-    build_flag_templates:
-      - --build-arg VERSION={{ .Version }}
-      - --build-arg COMMIT={{ .Commit }}
-      - --build-arg BUILD_DATE={{ .Date }}
-    goos: linux
+  # docker.io amd64
+  - &dockerhub_amd64
+    id: docker-amd64
+    ids:
+      - conscan
+    use: buildx
     goarch: amd64
-  - image_templates:
-      - "docker.io/{{ .Env.DOCKER_USERNAME }}/conscan:{{ .Version }}-arm64"
+    image_templates:
+      - docker.io/peek8/conscan:latest
+      - docker.io/peek8/conscan:v{{.Version}}-amd64
     build_flag_templates:
-      - --build-arg VERSION={{ .Version }}
-      - --build-arg COMMIT={{ .Commit }}
-      - --build-arg BUILD_DATE={{ .Date }}
-    goos: linux
+      - "--build-arg=TARGETOS=linux"
+      - "--build-arg=TARGETARCH=amd64"
+      #- "--build-arg=TRIVY_VERSION={{.Env.TRIVY_VERSION}}"
+      - "--platform=linux/amd64"
+      - "--label=org.opencontainers.image.created={{.Date}}"
+      - "--label=org.opencontainers.image.title={{.ProjectName}}"
+      - "--label=org.opencontainers.image.description=A tool for scanning/analyzing vulnerabilities, secrets, storages etc in a Container Image"
+      - "--label=org.opencontainers.image.url={{.GitURL}}"
+      - "--label=org.opencontainers.image.source={{.GitURL}}"
+      - "--label=org.opencontainers.image.version={{.Version}}"
+      - "--label=org.opencontainers.image.revision={{.FullCommit}}"
+      - "--label=org.opencontainers.image.licenses=Apache 2.0"
+      - "--label=org.opencontainers.image.authors=Md. Asraful Haque"
+
+  # docker.io arm64
+  - &dockerhub_arm64
+    id: docker-arm64
+    ids:
+      - conscan
+    use: buildx
     goarch: arm64
+    image_templates:
+      - docker.io/peek8/conscan:v{{.Version}}-arm64
+    build_flag_templates:
+      - "--build-arg=TARGETOS=linux"
+      - "--build-arg=TARGETARCH=arm64"
+      - "--platform=linux/arm64/v8"
+      - "--label=org.opencontainers.image.created={{.Date}}"
+      - "--label=org.opencontainers.image.title={{.ProjectName}}"
+      - "--label=org.opencontainers.image.description=A tool for scanning/analyzing vulnerabilities, secrets, storages etc in a Container Image"
+      - "--label=org.opencontainers.image.url={{.GitURL}}"
+      - "--label=org.opencontainers.image.source={{.GitURL}}"
+      - "--label=org.opencontainers.image.version={{.Version}}"
+      - "--label=org.opencontainers.image.revision={{.FullCommit}}"
+      - "--label=org.opencontainers.image.licenses=Apache 2.0"
+      - "--label=org.opencontainers.image.authors=Md. Asraful Haque"
+
+  # # ghcr.io amd64
+  # - id: ghcr-amd64
+  #   <<: *dockerhub_amd64
+  #   image_templates:
+  #     - ghcr.io/peek8/conscan:v{{.Version}}-amd64
+
+  # # ghcr.io arm64
+  # - id: ghcr-arm64
+  #   <<: *dockerhub_arm64
+  #   image_templates:
+  #     - ghcr.io/peek8/conscan:v{{.Version}}-arm64
+
+docker_manifests:
+  # docker.io manifests
+  - name_template: docker.io/peek8/conscan:latest
+    image_templates: &dockerhub_images
+      - docker.io/peek8/conscan:v{{.Version}}-amd64
+      - docker.io/peek8/conscan:v{{.Version}}-arm64
+
+  - name_template: docker.io/peek8/conscan:v{{.Major}}
+    image_templates: *dockerhub_images
+
+  - name_template: docker.io/peek8/conscan:v{{.Major}}.{{.Minor}}
+    image_templates: *dockerhub_images
+
+  - name_template: docker.io/peek8/conscan:v{{.Version}}
+    image_templates: *dockerhub_images
+
+
+  # ghcr.io manifests
+  # - name_template: ghcr.io/peek8/conscan:latest
+  #   image_templates: &ghcr_images
+  #     - ghcr.io/peek8/conscan:v{{.Version}}-amd64
+  #     - ghcr.io/peek8/conscan:v{{.Version}}-arm64
+
+  # - name_template: ghcr.io/peek8/conscan:v{{.Major}}
+  #   image_templates: *ghcr_images
+
+  # - name_template: ghcr.io/peek8/conscan:v{{.Major}}.{{.Minor}}
+  #   image_templates: *ghcr_images
+
+  # - name_template: ghcr.io/peek8/conscan:v{{.Version}}
+  #   image_templates: *ghcr_images
 
 changelog:
   sort: asc
   use: github
 
-release:
-  github:
-    owner: your-github-username
-    name: conscan
-
 # optional: Homebrew tap if you want to distribute CLI
-brews:
-  - name: conscan
-    tap:
-      owner: your-github-username
-      name: homebrew-tap
-    commit_author:
-      name: conscan-bot
-      email: bot@conscan.io
-    description: "Conscan is a container security scanning tool."
-    homepage: "https://github.com/your-github-username/conscan"
+# brews:
+#   - name: conscan
+#     tap:
+#       owner: your-github-username
+#       name: homebrew-tap
+#     commit_author:
+#       name: conscan-bot
+#       email: bot@conscan.io
+#     description: "Conscan is a container security scanning tool."
+#     homepage: "https://github.com/your-github-username/conscan"

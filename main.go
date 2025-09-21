@@ -11,16 +11,16 @@ const (
 
 // to be overwritten by -ldflags
 var (
-	version = "dev"
-	commit  = "none"
-	date    = "unknown"
+	version   = "dev"
+	gitCommit = "none"
+	buildDate = "unknown"
 )
 
 func main() {
 	cmd.Execute(cmd.Identification{
 		Name:      applicationName,
 		Version:   version,
-		GitCommit: commit,
-		BuildDate: date,
+		GitCommit: gitCommit,
+		BuildDate: buildDate,
 	})
 }
