@@ -23,6 +23,10 @@ import (
 	"peek8.io/conscan/pkg/utils"
 )
 
+const (
+	maxRowCount = 25
+)
+
 var severityColors = map[string]color.Attribute{
 	models.SeverityNameCritical: color.FgRed,
 	models.SeverityNameHigh:     color.FgHiMagenta,
@@ -137,7 +141,8 @@ func (vr VulnerabilitiesRenderer) Render(report models.ScanReport) error {
 
 	t := newTable(vr.buf)
 	t.AppendHeader(table.Row{"Library", "Vulnerability", "Severity", "Installed Version", "Fixed Version", "Description"})
-	for _, vuln := range report.Vulnerabilities {
+	vulns := lo.Slice(report.Vulnerabilities, 0, maxRowCount)
+	for _, vuln := range vulns {
 		t.AppendRow(table.Row{
 			vuln.PkgName, vuln.VulnerabilityID, getSeverityColoredText(vuln.Severity), getColored(vuln.InstalledVersion, color.FgMagenta), getColored(vuln.FixedVersion, color.FgGreen), vr.getVulnerabilityDescription(vuln),
 		})
@@ -145,6 +150,9 @@ func (vr VulnerabilitiesRenderer) Render(report models.ScanReport) error {
 	}
 
 	t.Render()
+	if len(report.Vulnerabilities) > maxRowCount {
+		addInfo(vr.buf, fmt.Sprintf("Showing %d Vulnerabilites from total %d vulnerabilites for the sake of readability at console, to view all the vulnerabilites use other format ie `json` or `html`.", maxRowCount, len(report.Vulnerabilities)))
+	}
 
 	return nil
 }
@@ -202,8 +210,9 @@ func (sbr SBOMRenderer) Render(report models.ScanReport) error {
 	t := newTable(sbr.buf)
 
 	t.AppendHeader(table.Row{"Name", "Version", "License", "Description"})
-	
-	for _, pkg := range report.SBOMs.Packages {
+
+	packages := lo.Slice(report.SBOMs.Packages, 0, maxRowCount)
+	for _, pkg := range packages {
 		t.AppendRow(table.Row{
 			pkg.PackageName, pkg.PackageVersion, pkg.PackageLicenseDeclared, wrapText(pkg.PackageDescription, 100),
 		})
@@ -211,6 +220,9 @@ func (sbr SBOMRenderer) Render(report models.ScanReport) error {
 	}
 
 	t.Render()
+	if len(report.SBOMs.Packages) > maxRowCount {
+		addInfo(sbr.buf, fmt.Sprintf("Showing %d packages from total %d packages for the sake of readability at console, to view all the packages use other format ie `json` or `html`.", maxRowCount, len(report.SBOMs.Packages)))
+	}
 
 	return nil
 }
@@ -251,7 +263,8 @@ func (sr StorageRenderer) Render(report models.ScanReport) error {
 
 	t := newTable(sr.buf)
 	t.AppendHeader(table.Row{"Count", "Wasted Space", "File Path"})
-	for _, ief := range report.StorageAnalysis.InefficientFiles {
+	files := lo.Slice(report.StorageAnalysis.InefficientFiles, 0, maxRowCount)
+	for _, ief := range files {
 		t.AppendRow(table.Row{
 			ief.Count, ief.WastedSpace, ief.FilePath,
 		})
@@ -259,6 +272,9 @@ func (sr StorageRenderer) Render(report models.ScanReport) error {
 	}
 
 	t.Render()
+	if len(report.StorageAnalysis.InefficientFiles) > maxRowCount {
+		addInfo(sr.buf, fmt.Sprintf("Showing %d Inefficient Files from total %d files for the sake of readability at console, to view all the Inefficient Files use other format ie `json` or `html`.", maxRowCount, len(report.StorageAnalysis.InefficientFiles)))
+	}
 
 	return nil
 }
