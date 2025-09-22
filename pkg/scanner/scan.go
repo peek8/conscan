@@ -76,7 +76,7 @@ func ScanImage(imageTag string, opts models.ScanOptions) {
 
 	// Now generating Report
 	spinner := log.StartSprinner("Generate Report", spinner.CharSets[14], out)
-	ra := report.NewReportAggregator(result)
+	ra := report.NewReportAggregator(result, opts)
 	agReport := ra.AggreagateReport()
 	spinner.Stop()
 	fmt.Fprintf(io.Writer(out), "[✔] %s finished\n", "Generate Report")

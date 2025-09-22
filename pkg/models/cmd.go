@@ -54,6 +54,14 @@ func (opt *ScanOptions) SetScanners(scanners []string) {
 	})
 }
 
+func (opt *ScanOptions) HasScanner(st ScannerType) bool {
+	if slices.Contains(opt.Scanners, ScannerAll) {
+		return true
+	}
+
+	return slices.Contains(opt.Scanners, st)
+}
+
 func (opt *ScanOptions) Validate() (string, bool) {
 	if msg, ok := opt.ValidateFormat(); !ok {
 		return msg, false

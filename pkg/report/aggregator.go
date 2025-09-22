@@ -365,7 +365,8 @@ func (ca *CISAggregator) AggregateCIS() *docklereport.JsonOutputFormat {
 }
 
 type ReportAggregrator struct {
-	Results *models.ScanResult
+	Results     *models.ScanResult
+	ScanOptions models.ScanOptions
 
 	va  *VulnerabilitiesAggregrator
 	sa  *SecretsAggregrator
@@ -412,11 +413,10 @@ func (ra *ReportAggregrator) AggreagateReport() *models.ScanReport {
 	sr.CISScans = ra.ca.AggregateCIS()
 	sr.StorageAnalysis = ra.sta.AggregateStorage()
 
-	if utils.IsNotEmptyArray(sr.Vulnerabilities) {
+	if ra.ScanOptions.HasScanner(models.ScannerVulnerability) {
 		// this needs to be done after AggregateVulnerabilities
 		sr.VulnerabilitySummary = ra.generateVulnerabilitySummary(sr.Vulnerabilities)
 	}
-	
 
 	return sr
 }
@@ -438,13 +438,14 @@ func (ra *ReportAggregrator) generateVulnerabilitySummary(vulns []models.Detecte
 	}
 }
 
-func NewReportAggregator(result *models.ScanResult) *ReportAggregrator {
+func NewReportAggregator(result *models.ScanResult, opts models.ScanOptions) *ReportAggregrator {
 	return &ReportAggregrator{
-		Results: result,
-		va:      &VulnerabilitiesAggregrator{Result: result},
-		sa:      &SecretsAggregrator{TrivyResult: result.TrivyResult},
-		sba:     &SbomsAggregator{SyftySBOMs: result.SyftySBOMs},
-		sta:     &StorageAggregator{StorageAnalysis: result.StorageAnalysis},
-		ca:      &CISAggregator{CISScans: result.CISScans},
+		Results:     result,
+		ScanOptions: opts,
+		va:          &VulnerabilitiesAggregrator{Result: result},
+		sa:          &SecretsAggregrator{TrivyResult: result.TrivyResult},
+		sba:         &SbomsAggregator{SyftySBOMs: result.SyftySBOMs},
+		sta:         &StorageAggregator{StorageAnalysis: result.StorageAnalysis},
+		ca:          &CISAggregator{CISScans: result.CISScans},
 	}
 }

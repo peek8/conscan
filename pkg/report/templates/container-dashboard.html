@@ -613,6 +613,7 @@
         </div>
 
         <div class="summary-cards">
+            {{if .VulnerabilitySummary}}
             <div class="summary-card critical-card">
                 <div class="summary-number">{{.VulnerabilitySummary.CriticalCount}}</div>
                 <div class="summary-label">Critical Vulnerabilities</div>
@@ -621,25 +622,33 @@
                 <div class="summary-number">{{.VulnerabilitySummary.HighCount}}</div>
                 <div class="summary-label">High Vulnerabilities</div>
             </div>
+            {{end}}
             <div class="summary-card exposed-secrets">
                 <div class="summary-number">{{.Secrets | len}}</div>
                 <div class="summary-label">Exposed Secrets</div>
             </div>
+            {{if .SBOMs}}
             <div class="summary-card low-card">
                 <div class="summary-number">{{.SBOMs.Packages | len}}</div>
                 <div class="summary-label">Installed Packages</div>
             </div>
+            {{end}}
+            {{if .CISScans}}
             <div class="summary-card cis-violation">
                 <div class="summary-number">{{.CISScans.Details | len}}</div>
                 <div class="summary-label">CIS Violations</div>
             </div>
+            {{end}}
+            {{if .StorageAnalysis}}
             <div class="summary-card storage-analysis">
                 <div class="summary-number">{{.StorageAnalysis.Efficiency | twoDecimalPercentage}}</div>
                 <div class="summary-label">Storage Efficiency</div>
             </div>
-            
+            {{end}}
         </div>
 
+        <!-- Vlunerabilities Section -->
+         {{if .VulnerabilitySummary}}
         <div class="section">
             <div class="section-header">
                 <div class="section-title">Package Vulnerabilities</div>
@@ -676,9 +685,10 @@
                 </div>
             </div>
         </div>
+        {{end}}
 
         
-
+        <!-- Secrets Section -->
         <div class="section">
             <div class="section-header">
                 <div class="section-title">Exposed Secrets</div>
@@ -717,6 +727,8 @@
             </div>
         </div>
 
+        <!--CIS Section -->
+        {{if .CISScans}}
         <div class="section">
             <div class="section-header">
                 <div class="section-title">CIS Benchmark Violations</div>
@@ -752,7 +764,10 @@
                 </div>
             </div>
         </div>
+        {{end}}
 
+        <!--Storage Section -->
+        {{if .StorageAnalysis}}
         <div class="section">
             <div class="section-header">
                 <div class="section-title">Storage Analysis</div>
@@ -820,7 +835,10 @@
                 </div>
             </div>
         </div>
+        {{end}}
 
+        <!--Packages Section -->
+        {{if .SBOMs}}
         <div class="section">
             <div class="section-header">
                 <div class="section-title">Installed Packages</div>
@@ -857,6 +875,7 @@
                 </div>
             </div>
         </div>
+        {{end}}
 
     </div>
 
