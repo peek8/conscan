@@ -21,7 +21,7 @@ func ScanVuln(imageTag string) (*trivytypes.Report, *grypemodels.Document) {
 
 func scanTrivyVuln(imageTag string) trivytypes.Report {
 	// run the trivy scan
-	output, err, errStr := utils.ExecuteCommand("trivy", trivyGeneralArgs(imageTag)...)
+	output, err, errStr := utils.ExecuteCommand("trivy", trivyVulnArgs(imageTag)...)
 
 	if err != nil {
 		log.Fatalf("Command execution failed: %v\nStderr: %s", err, errStr)
@@ -56,3 +56,8 @@ func grypeVulnScanCmdArgs(imageTag string) []string {
 func trivyGeneralArgs(imageTag string) []string {
 	return []string{"image", imageTag, "-f", FormatJson}
 }
+
+func trivyVulnArgs(imageTag string) []string {
+	return append(trivyGeneralArgs(imageTag), "--scanners", "vuln")
+}
+

@@ -14,9 +14,11 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"slices"
 
 	"github.com/briandowns/spinner"
 	"github.com/fatih/color"
+	"github.com/samber/lo"
 	"peek8.io/conscan/pkg/log"
 	"peek8.io/conscan/pkg/models"
 	"peek8.io/conscan/pkg/report"
@@ -31,44 +33,21 @@ const (
 	TrivyScannerLicenseFlag   = "license"
 )
 
-// Trivy output format
 const (
 	FormatJson  = "json"
 	FormatTable = "table"
 )
 
+type ScanTask struct {
+	scannerType models.ScannerType
+	name        string
+	scanFunc    func(string) scannerFunc
+}
+
+type scannerFunc func(res *models.ScanResult) error
+
 func ScanImage(imageTag string, opts models.ScanOptions) {
-	tasks := []ScanTask{
-		{
-			name: "Scan Vulnerabilities and Secrets",
-			scanFunc: func(res *models.ScanResult) error {
-				// scan vulnerability that also include secrets from trivy
-				res.TrivyResult, res.GrypeResult = ScanVuln(imageTag)
-				return nil
-			},
-		},
-		{
-			name: "Scan Packages",
-			scanFunc: func(res *models.ScanResult) error {
-				res.SyftySBOMs = SyftScanForSboms(imageTag)
-				return nil
-			},
-		},
-		{
-			name: "Scan Storages",
-			scanFunc: func(res *models.ScanResult) error {
-				res.StorageAnalysis = ScanForStorage(imageTag)
-				return nil
-			},
-		},
-		{
-			name: "Scan CIS Benchmark",
-			scanFunc: func(res *models.ScanResult) error {
-				res.CISScans = DockleScanForCIS(imageTag)
-				return nil
-			},
-		},
-	}
+	tasks := getScanTasks(opts)
 
 	result := &models.ScanResult{}
 	out := os.Stderr
@@ -76,7 +55,8 @@ func ScanImage(imageTag string, opts models.ScanOptions) {
 	tickColor := color.New(color.FgHiGreen).Sprint("✔")
 	for _, st := range tasks {
 		spinner := log.StartSprinner(st.name, log.MagnifyGlasses, out)
-		err := st.scanFunc(result)
+		scanner := st.scanFunc(imageTag)
+		err := scanner(result)
 
 		spinner.Stop()
 		if err != nil {
@@ -86,6 +66,14 @@ func ScanImage(imageTag string, opts models.ScanOptions) {
 		fmt.Fprintf(io.Writer(out), "[%s] %s finished\n", tickColor, st.name)
 	}
 
+	// we get the image metadata from trivy report, so if vuln and/or secret scanning not selected we will miss those
+	// metadata, so if trivyReport is nil, run the secret scanning to get the metadata
+	secScanner := scannersMap()[models.ScannerSecret].scanFunc(imageTag)
+	err := secScanner(result)
+	if err != nil {
+		utils.ExitOnError(err)
+	}
+
 	// Now generating Report
 	spinner := log.StartSprinner("Generate Report", spinner.CharSets[14], out)
 	ra := report.NewReportAggregator(result)
@@ -93,7 +81,7 @@ func ScanImage(imageTag string, opts models.ScanOptions) {
 	spinner.Stop()
 	fmt.Fprintf(io.Writer(out), "[✔] %s finished\n", "Generate Report")
 
-	err := report.Write(context.Background(), *agReport, opts)
+	err = report.Write(context.Background(), *agReport, opts)
 
 	if err != nil {
 		utils.ExitOnError(err)
@@ -101,7 +89,84 @@ func ScanImage(imageTag string, opts models.ScanOptions) {
 
 }
 
-type ScanTask struct {
-	name     string
-	scanFunc func(res *models.ScanResult) error
+func getScanTasks(opts models.ScanOptions) []ScanTask {
+	sMap := scannersMap()
+
+	if slices.Contains(opts.Scanners, models.ScannerAll) {
+		return scanners()
+	}
+
+	return lo.Map(opts.Scanners, func(s models.ScannerType, _ int) ScanTask {
+		return sMap[s]
+	})
+}
+
+func scannersMap() map[models.ScannerType]ScanTask {
+	return lo.KeyBy(scanners(), func(s ScanTask) models.ScannerType {
+		return s.scannerType
+	})
+}
+
+func scanners() []ScanTask {
+	return []ScanTask{
+		{
+			scannerType: models.ScannerVulnerability,
+			name:        "Scan Vulnerabilities",
+			scanFunc: func(imageTag string) scannerFunc {
+				return func(res *models.ScanResult) error {
+					// scan vulnerability that also include secrets from trivy
+					res.TrivyResult, res.GrypeResult = ScanVuln(imageTag)
+					return nil
+				}
+			},
+		},
+		{
+			scannerType: models.ScannerSecret,
+			name:        "Scan Secrets",
+			scanFunc: func(imageTag string) scannerFunc {
+				return func(res *models.ScanResult) error {
+					report := scanSecrets(imageTag)
+
+					//TODO: Extract Secret from trivy secret
+					if res.TrivyResult == nil {
+						res.TrivyResult = &report
+					} else if utils.IsNotEmptyArray(res.TrivyResult.Results) && utils.IsNotEmptyArray(report.Results) {
+						res.TrivyResult.Results[0].Secrets = report.Results[0].Secrets
+					}
+
+					return nil
+				}
+			},
+		},
+		{
+			scannerType: models.ScannerPackage,
+			name:        "Scan Packages",
+			scanFunc: func(imageTag string) scannerFunc {
+				return func(res *models.ScanResult) error {
+					res.SyftySBOMs = SyftScanForSboms(imageTag)
+					return nil
+				}
+			},
+		},
+		{
+			scannerType: models.ScannerStorage,
+			name:        "Scan Storages",
+			scanFunc: func(imageTag string) scannerFunc {
+				return func(res *models.ScanResult) error {
+					res.StorageAnalysis = ScanForStorage(imageTag)
+					return nil
+				}
+			},
+		},
+		{
+			scannerType: models.ScannerCIS,
+			name:        "Scan CIS Benchmark",
+			scanFunc: func(imageTag string) scannerFunc {
+				return func(res *models.ScanResult) error {
+					res.CISScans = DockleScanForCIS(imageTag)
+					return nil
+				}
+			},
+		},
+	}
 }

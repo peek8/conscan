@@ -133,6 +133,10 @@ func (vg *VulnerabilitiesAggregrator) mergeVulnerabilities(trivyVulns, grypeVuln
 }
 
 func (vg *VulnerabilitiesAggregrator) normalizeTrivyVulnerabilities() []models.DetectedVulnerability {
+	if vg.Result.TrivyResult == nil {
+		return []models.DetectedVulnerability{}
+	}
+
 	vRes, found := lo.Find(vg.Result.TrivyResult.Results, func(res trivytypes.Result) bool {
 		return res.Class == trivytypes.ClassOSPkg && !res.IsEmpty()
 	})
@@ -190,6 +194,10 @@ func (vg *VulnerabilitiesAggregrator) getTrivyCvss(tv trivytypes.DetectedVulnera
 }
 
 func (vg *VulnerabilitiesAggregrator) normalizeGripyVulnerabilities() []models.DetectedVulnerability {
+	if vg.Result.GrypeResult == nil {
+		return []models.DetectedVulnerability{}
+	}
+
 	getTitle := func(m grypemodels.Match) string {
 		if len(m.RelatedVulnerabilities) > 0 {
 			// the description is in format like:
@@ -404,8 +412,11 @@ func (ra *ReportAggregrator) AggreagateReport() *models.ScanReport {
 	sr.CISScans = ra.ca.AggregateCIS()
 	sr.StorageAnalysis = ra.sta.AggregateStorage()
 
-	// this needs to be done after AggregateVulnerabilities
-	sr.VulnerabilitySummary = ra.generateVulnerabilitySummary(sr.Vulnerabilities)
+	if utils.IsNotEmptyArray(sr.Vulnerabilities) {
+		// this needs to be done after AggregateVulnerabilities
+		sr.VulnerabilitySummary = ra.generateVulnerabilitySummary(sr.Vulnerabilities)
+	}
+	
 
 	return sr
 }

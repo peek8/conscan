@@ -13,10 +13,12 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"strconv"
 	"strings"
 
 	"github.com/fatih/color"
 	"github.com/jedib0t/go-pretty/v6/table"
+	"github.com/samber/lo"
 	"peek8.io/conscan/pkg/models"
 	"peek8.io/conscan/pkg/utils"
 )
@@ -49,16 +51,7 @@ type Renderer interface {
 
 func (tw TableWriter) Write(_ context.Context, report models.ScanReport) error {
 	buf := bytes.NewBuffer([]byte{})
-	renderers := []Renderer{
-		HeaderRenderer{buf: buf},
-		VulnerabilitySummaryRenderer{buf: buf},
-		VulnerabilitiesRenderer{buf: buf},
-		SecretsRenderer{buf: buf},
-		CISRenderer{buf: buf},
-		StorageRenderer{buf: buf},
-		//SBOMRenderer{buf: buf},
-	}
-
+	renderers := tw.getRenderers(buf, report)
 	for _, renderer := range renderers {
 		err := renderer.Render(report)
 		if err != nil {
@@ -69,6 +62,21 @@ func (tw TableWriter) Write(_ context.Context, report models.ScanReport) error {
 	fmt.Fprint(tw.Output, buf.String())
 
 	return nil
+}
+
+func (tw TableWriter) getRenderers(buf io.Writer, report models.ScanReport) []Renderer {
+	renderers := []Renderer{
+		HeaderRenderer{buf: buf},
+	}
+
+	renderers = utils.AppendIf(lo.IsNotNil(report.VulnerabilitySummary), renderers, Renderer(VulnerabilitySummaryRenderer{buf: buf}))
+	renderers = utils.AppendIf(utils.IsNotEmptyArray(report.Vulnerabilities), renderers, Renderer(VulnerabilitiesRenderer{buf: buf}))
+	renderers = utils.AppendIf(utils.IsNotEmptyArray(report.Secrets), renderers, Renderer(SecretsRenderer{buf: buf}))
+	renderers = utils.AppendIf(lo.IsNotNil(report.CISScans), renderers, Renderer(CISRenderer{buf: buf}))
+	renderers = utils.AppendIf(lo.IsNotNil(report.StorageAnalysis), renderers, Renderer(StorageRenderer{buf: buf}))
+	renderers = utils.AppendIf(lo.IsNotNil(report.SBOMs), renderers, Renderer(SBOMRenderer{buf: buf}))
+
+	return renderers
 }
 
 type HeaderRenderer struct {
@@ -83,11 +91,11 @@ func (hr HeaderRenderer) Render(report models.ScanReport) error {
 
 	t.AppendRow(table.Row{"Scanned Image", report.ArtifactName})
 	t.AppendSeparator()
-	t.AppendRow(table.Row{"Vulnerabilities", report.VulnerabilitySummary.TotalCount})
+	t.AppendRow(table.Row{"Vulnerabilities", utils.EitherOrFunc(lo.IsNotNil(report.VulnerabilitySummary), func() string { return strconv.Itoa(report.VulnerabilitySummary.TotalCount) }, "-")})
 	t.AppendSeparator()
 	t.AppendRow(table.Row{"Exposed Secrets", len(report.Secrets)})
 	t.AppendSeparator()
-	t.AppendRow(table.Row{"Installed Package/Software", len(report.SBOMs.Packages)})
+	t.AppendRow(table.Row{"Installed Package/Software", utils.EitherOrFunc(lo.IsNotNil(report.SBOMs), func() string { return strconv.Itoa(len(report.SBOMs.Packages)) }, "-")})
 	t.AppendSeparator()
 
 	t.Render()
@@ -194,6 +202,7 @@ func (sbr SBOMRenderer) Render(report models.ScanReport) error {
 	t := newTable(sbr.buf)
 
 	t.AppendHeader(table.Row{"Name", "Version", "License", "Description"})
+	
 	for _, pkg := range report.SBOMs.Packages {
 		t.AppendRow(table.Row{
 			pkg.PackageName, pkg.PackageVersion, pkg.PackageLicenseDeclared, wrapText(pkg.PackageDescription, 100),

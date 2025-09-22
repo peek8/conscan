@@ -22,6 +22,7 @@ var scanUsage = "use conscan scan imageTag"
 
 var formatFlagVar string
 var outputFlagVar string
+var scannersFlagVar []string
 
 // scanCmd represents the scan command
 var scanCmd = &cobra.Command{
@@ -38,6 +39,7 @@ var scanCmd = &cobra.Command{
 			Format:     models.OutputFormat(formatFlagVar),
 			OutputFile: outputFlagVar,
 		}
+		opts.SetScanners(scannersFlagVar)
 
 		msg, ok := opts.Validate()
 		if !ok {
@@ -52,4 +54,8 @@ func init() {
 	// Here you will define your flags and configuration settings.
 	scanCmd.PersistentFlags().StringVarP(&formatFlagVar, "format", "f", "table", "Format of the scanning report")
 	scanCmd.PersistentFlags().StringVarP(&outputFlagVar, "output", "o", "", "Output File name (optional)")
+	scanCmd.PersistentFlags().StringSliceVar(&scannersFlagVar,
+		"scanners",
+		[]string{string(models.ScannerAll)},
+		fmt.Sprintf("Comma-separated list of what type of scans to be performed (allowed values: %s).\nBy default, Every scan is performed. Except for 'table format', \"Scanning\" Packages is  excluded for the sake of brevity while the report is not written to Console", models.SupportedScanners))
 }
