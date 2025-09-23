@@ -68,10 +68,12 @@ func ScanImage(imageTag string, opts models.ScanOptions) {
 
 	// we get the image metadata from trivy report, so if vuln and/or secret scanning not selected we will miss those
 	// metadata, so if trivyReport is nil, run the secret scanning to get the metadata
-	secScanner := scannersMap()[models.ScannerSecret].scanFunc(imageTag)
-	err := secScanner(result)
-	if err != nil {
-		utils.ExitOnError(err)
+	if result.TrivyResult == nil {
+		secScanner := scannersMap()[models.ScannerSecret].scanFunc(imageTag)
+		err := secScanner(result)
+		if err != nil {
+			utils.ExitOnError(err)
+		}
 	}
 
 	// Now generating Report
@@ -81,7 +83,7 @@ func ScanImage(imageTag string, opts models.ScanOptions) {
 	spinner.Stop()
 	fmt.Fprintf(io.Writer(out), "[✔] %s finished\n", "Generate Report")
 
-	err = report.Write(context.Background(), *agReport, opts)
+	err := report.Write(context.Background(), *agReport, opts)
 
 	if err != nil {
 		utils.ExitOnError(err)
@@ -127,11 +129,10 @@ func scanners() []ScanTask {
 				return func(res *models.ScanResult) error {
 					report := scanSecrets(imageTag)
 
-					//TODO: Extract Secret from trivy secret
 					if res.TrivyResult == nil {
 						res.TrivyResult = &report
-					} else if utils.IsNotEmptyArray(res.TrivyResult.Results) && utils.IsNotEmptyArray(report.Results) {
-						res.TrivyResult.Results[0].Secrets = report.Results[0].Secrets
+					} else {
+						res.TrivyResult.Results = append(res.TrivyResult.Results, report.Results...)
 					}
 
 					return nil
