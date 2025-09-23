@@ -81,14 +81,8 @@ func saveDockerTar(imageRef, tmpDir string) (string, error) {
 
 	outputTar := filepath.Join(tmpDir, ref.Identifier()+".tar")
 
-	// TODO: handle restricted repository
-	// var auth = authn.Anonymous
-	// if username != "" && password != "" {
-	// 	auth = &authn.Basic{Username: username, Password: password}
-	// }
-
 	// Pull image from registry
-	img, err := remote.Image(ref, remote.WithAuth(authn.Anonymous))
+	img, err := remote.Image(ref, remote.WithAuthFromKeychain(authn.DefaultKeychain))
 	if err != nil {
 		return "", fmt.Errorf("pulling image failed: %w", err)
 	}
