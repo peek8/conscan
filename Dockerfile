@@ -37,7 +37,10 @@ HEALTHCHECK CMD [ "conscan", "--version" ]
 
 # Make the cache dir for the user
 RUN mkdir -p /.cache
+# For docker config file
+RUN mkdir -p /.docker
 RUN chown -R 65532:65532 /.cache
+RUN chown -R 65532:65532 /.docker
 # Provide a non-root user (distroless provides user 65532)
 USER 65532:65532
 
