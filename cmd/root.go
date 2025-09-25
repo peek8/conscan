@@ -16,6 +16,21 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var rootCMDUsage = `Scan a container image for vulnerabilities, exposed secrets, inefficient file storage, installed packages and check CIS(Center for Internet Security) Benchmarks.
+Supports the following image sources:
+    conscan scan yourimage:tag				defaults to using local images from a Docker/Podman daemon
+    conscan scan registry/yourrepo/yourimage:tag  	pull image directly from a registry (no container runtime required)
+
+Examples:	
+# Scan a container image locally available
+$ conscan scan yourimage:tag          // uses the Podman/Docker daemon for local images
+
+# Scan container images from registry eg. dockerhub
+$ conscan scan docker.io/yourimage:tag
+
+# or from github image repo
+$ conscan scan ghcr.io/yourimage:tag`
+
 type Identification struct {
 	Name      string `json:"application,omitempty"`
 	Version   string `json:"version,omitempty"`
@@ -49,10 +64,10 @@ func Root(identiifcaton Identification) *cobra.Command {
 	var showVersion bool
 	// rootCmd represents the base command when called without any subcommands
 	rootCmd := &cobra.Command{
+		Args:  validateRootArgs,
 		Use:   "conscan",
-		Short: "Scanner for vulnerabilities in container images as well as for configuration issues and hard-coded secrets",
-		Long: `Usage:
-	conscan [command] target`,
+		Short: "Scan a container image for vulnerabilities, exposed secrets, inefficient file storage, installed packages and suggest container image security best practices",
+		Long:  rootCMDUsage,
 		// Uncomment the following line if your bare application
 		// has an action associated with it:
 		Run: func(cmd *cobra.Command, args []string) {
@@ -65,6 +80,16 @@ func Root(identiifcaton Identification) *cobra.Command {
 	rootCmd.Flags().BoolVarP(&showVersion, "version", "v", false, "Show Version")
 
 	return rootCmd
+}
+
+func validateRootArgs(cmd *cobra.Command, args []string) error {
+	if len(args) == 0 && cmd.Flags().NFlag() == 0 {
+		if err := cmd.Help(); err != nil {
+			return fmt.Errorf("unable to display help: %w", err)
+		}
+	}
+
+	return nil
 }
 
 func init() {

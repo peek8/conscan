@@ -11,14 +11,35 @@ package cmd
 import (
 	"fmt"
 	"log"
-	"os"
 
 	"github.com/spf13/cobra"
 	"peek8.io/conscan/pkg/models"
 	"peek8.io/conscan/pkg/scanner"
+	"peek8.io/conscan/pkg/utils"
 )
 
-var scanUsage = "use conscan scan imageTag"
+var scanUsage = `Scan a container image for vulnerabilities, exposed secrets, inefficient file storage, installed packages and check CIS(Center for Internet Security) Benchmarks.
+
+Examples:	
+# Scan a container image locally available
+$ conscan scan yourimage:tag          // uses the Podman/Docker daemon for local images
+
+# Scan container images from registry eg. dockerhub
+$ conscan scan docker.io/yourimage:tag
+
+# or from github image repo
+$ conscan scan ghcr.io/yourimage:tag
+
+# By default the scan report will be in Table format that is more convenient for the Console output. 
+# If you want the report in json format, you can use
+$ conscan scan --format json -o report.json yourimage:tag # the report will be saved to report.json
+
+# Similary to save in html format:
+$ conscan scan --format html -o report.html yourimage:tag
+
+# By default, conscan will scan everything. If you are interested for specific scan report, eg only vulnerabilities and exposed secrets you can use like:
+$ conscan scan --scanners=vuln,secret yourimage:tag
+`
 
 var formatFlagVar string
 var outputFlagVar string
@@ -27,13 +48,12 @@ var scannersFlagVar []string
 // scanCmd represents the scan command
 var scanCmd = &cobra.Command{
 	Use:   "scan",
-	Short: "Scans vulnerabilities in a container image",
-	Long:  `Scans vulnerabilities in a container image`,
+	Short: "Scans a container image",
+	Long:  scanUsage,
 	Run: func(cmd *cobra.Command, args []string) {
 		if len(args) == 0 {
-			fmt.Println("Image tag missing")
-			fmt.Println(scanUsage)
-			os.Exit(1)
+			_ = cmd.Help()
+			utils.ExitOnError(fmt.Errorf("Image tag missing, use `conscan scan yourimage:tag`"))
 		}
 		opts := models.ScanOptions{
 			Format:     models.OutputFormat(formatFlagVar),
