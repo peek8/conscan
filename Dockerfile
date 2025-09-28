@@ -17,7 +17,7 @@ ARG DIVE_VERSION="0.13.1"
 ARG DOCKLE_VERSION="0.4.15"
 
 
-
+RUN uname -m && uname -s && echo "Arg target os: ${TARGETOS}, arg target arch: ${TARGETARCH}}"
 
 # Download other tools
 RUN wget -qO-  https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin v${TRIVY_VERSION}
