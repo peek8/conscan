@@ -49,15 +49,15 @@ archives:
 
 dockers:
   # docker.io amd64
-  - &dockerhub_amd64
-    id: docker-amd64
+  - &ghcr_amd64
+    id: ghcr-amd64
     ids:
       - conscan
     use: buildx
     goarch: amd64
     image_templates:
-      - docker.io/peek8/conscan:latest
-      - docker.io/peek8/conscan:v{{.Version}}-amd64
+      - ghcr.io/peek8/conscan:latest
+      - ghcr.io/peek8/conscan:v{{.Version}}-amd64
     build_flag_templates:
       - "--build-arg=TARGETOS=linux"
       - "--build-arg=TARGETARCH=amd64"
@@ -74,14 +74,14 @@ dockers:
       - "--label=org.opencontainers.image.authors=Md. Asraful Haque"
 
   # docker.io arm64
-  - &dockerhub_arm64
-    id: docker-arm64
+  - &ghcr_arm64
+    id: ghcr-arm64
     ids:
       - conscan
     use: buildx
     goarch: arm64
     image_templates:
-      - docker.io/peek8/conscan:v{{.Version}}-arm64
+      - ghcr.io/peek8/conscan:v{{.Version}}-arm64
     build_flag_templates:
       - "--build-arg=TARGETOS=linux"
       - "--build-arg=TARGETARCH=arm64"
@@ -109,36 +109,35 @@ dockers:
   #     - ghcr.io/peek8/conscan:v{{.Version}}-arm64
 
 docker_manifests:
-  # docker.io manifests
-  - name_template: docker.io/peek8/conscan:latest
-    image_templates: &dockerhub_images
-      - docker.io/peek8/conscan:v{{.Version}}-amd64
-      - docker.io/peek8/conscan:v{{.Version}}-arm64
-
-  - name_template: docker.io/peek8/conscan:v{{.Major}}
-    image_templates: *dockerhub_images
-
-  - name_template: docker.io/peek8/conscan:v{{.Major}}.{{.Minor}}
-    image_templates: *dockerhub_images
-
-  - name_template: docker.io/peek8/conscan:v{{.Version}}
-    image_templates: *dockerhub_images
-
-
   # ghcr.io manifests
-  # - name_template: ghcr.io/peek8/conscan:latest
-  #   image_templates: &ghcr_images
-  #     - ghcr.io/peek8/conscan:v{{.Version}}-amd64
-  #     - ghcr.io/peek8/conscan:v{{.Version}}-arm64
+  - name_template: ghcr.io/peek8/conscan:latest
+    image_templates: &ghcr_images
+      - ghcr.io/peek8/conscan:v{{.Version}}-amd64
+      - ghcr.io/peek8/conscan:v{{.Version}}-arm64
 
-  # - name_template: ghcr.io/peek8/conscan:v{{.Major}}
-  #   image_templates: *ghcr_images
+  - name_template: ghcr.io/peek8/conscan:v{{.Major}}
+    image_templates: *ghcr_images
 
-  # - name_template: ghcr.io/peek8/conscan:v{{.Major}}.{{.Minor}}
-  #   image_templates: *ghcr_images
+  - name_template: ghcr.io/peek8/conscan:v{{.Major}}.{{.Minor}}
+    image_templates: *ghcr_images
 
-  # - name_template: ghcr.io/peek8/conscan:v{{.Version}}
-  #   image_templates: *ghcr_images
+  - name_template: ghcr.io/peek8/conscan:v{{.Version}}
+    image_templates: *ghcr_images
+
+  # # docker.io manifests
+  # - name_template: docker.io/peek8/conscan:latest
+  #   image_templates: &dockerhub_images
+  #     - docker.io/peek8/conscan:v{{.Version}}-amd64
+  #     - docker.io/peek8/conscan:v{{.Version}}-arm64
+
+  # - name_template: docker.io/peek8/conscan:v{{.Major}}
+  #   image_templates: *dockerhub_images
+
+  # - name_template: docker.io/peek8/conscan:v{{.Major}}.{{.Minor}}
+  #   image_templates: *dockerhub_images
+
+  # - name_template: docker.io/peek8/conscan:v{{.Version}}
+  #   image_templates: *dockerhub_images
 
 changelog:
   sort: asc

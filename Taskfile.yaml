@@ -24,7 +24,7 @@ vars:
   SNAPSHOT_DIR: ./snapshot
   SNAPSHOT_CMD: "{{ .GORELEASER }} release --config {{ .TMP_DIR }}/goreleaser.yaml --clean --snapshot --skip=publish --skip=sign"
   BUILD_CMD:    "{{ .GORELEASER }} build   --config {{ .TMP_DIR }}/goreleaser.yaml --clean --snapshot --single-target"
-  RELEASE_CMD:  "{{ .GORELEASER }} release --clean --release-notes {{ .CHANGELOG }}"
+  RELEASE_CMD:  "{{ .GORELEASER }} release --clean" # --release-notes {{ .CHANGELOG }}"
 
 
 tasks:
@@ -156,6 +156,16 @@ tasks:
 
       - "{{ .SNAPSHOT_CMD }}"
       - cmd: docker image prune -f 
+
+  release:
+    desc: Release
+    aliases:
+      - release
+    deps: [tools, tmpdir]
+    method: checksum
+    cmds:
+      - silent: true
+      - "{{ .RELEASE_CMD }}"
       
   run:
     desc: Run locally
