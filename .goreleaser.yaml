@@ -6,7 +6,7 @@ release:
   prerelease: true
 
   # If set to true, will not auto-publish the release. This is done to allow us to review the changelog before publishing.
-  draft: true
+  draft: false
 
 project_name: conscan
 
