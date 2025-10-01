@@ -1,5 +1,5 @@
 <p align="center">
-    <img alt="Conscan logo" src="resources/conscan-logo.png" width="234">
+    <img alt="Conscan logo" src="resources/conscan-logo.png" width="200">
 </p>
 
 
@@ -8,6 +8,11 @@
 
 Scans a container image for`vulnerabilities`, `exposed secrets`, `inefficient file storage`, `OS packages and software dependencies in use (SBOM)` and `check CIS(Center for Internet Security) Benchmarks`.
 
+**Conscan Report in CLI (Table Format):**
+![Image](https://github.com/user-attachments/assets/42cc02b1-c7d4-47b8-a5f8-f837163f8096)
+
+**Conscan Report in HTML Format:**
+![Image](https://github.com/user-attachments/assets/d40f573f-9a30-4bb2-9618-591c498033fd)
 
 # 📖 Introduction
 
@@ -86,12 +91,372 @@ Conscan leverages well-established open-source security and compliance tools und
 
 By orchestrating these tools behind the scenes, conscan provides a streamlined developer experience with consistent reporting, multiple output formats, and optional CIS benchmark validation.
 
-# Quick Start
+# 🔧 Installation
+## Pre-Requisites
+If you want to install the binary at your machine, you need to install the following tools to make the binary work:
+- [Trivy](https://github.com/aquasecurity/trivy) 
+- [Grype](https://github.com/anchore/grype) 
+- [Syft](https://github.com/anchore/syft) 
+- [Dive](https://github.com/wagoodman/dive)
+- [Dockle](https://github.com/goodwithtech/dockle)
 
-# 📊 Report Formats
+You can go to the corresponding sites and install them as per the installation guide, or can use [install-dependencies.sh](./scripts/install-dependencies.sh) script.
+
+## Binary
+You can get the latest version binary from [releases page](https://github.com/peek8/conscan/releases).
+
+Download the archive file for your operating system/architecture. Unpack the archive, and put the binary somewhere in your `$PATH` (on UNIX-y systems, `/usr/local/bin` or the like).
+you can check your os at terminal using command: `$uname -s` and architecture by `$uname -m`.
+For example, if your os is `Darwin` and architecture is `arm64`, you can run the following command to install:
+
+```bash
+$ conscan_version=0.1.0-alpha1
+$ wget -qO- "https://github.com/peek8/conscan/releases/download/v${conscan_version}/conscan_${conscan_version}_darwin_arm64.tar.gz" | tar -xz -C /usr/local/bin conscan
+```
+
+- NOTE: Make sure that the binary is executable. (`chmod +x conscan`)
+
+## Use Docker
+You can also run the `conscan` using the Container Image: 
+
+```bash
+$ docker run --rm -it \
+--name conscan ghcr.io/peek8/conscan:latest \
+scan $(ImageName):$(ImageTag)
+```
+For example, to scan the `alpine:latest` image, you can use:
+```bash
+$ docker run --rm -it \
+--name conscan  ghcr.io/peek8/conscan:latest \
+scan alpine:latest
+```
+
+<details>
+<summary>Result</summary>
+
+https://github.com/user-attachments/assets/25f07a13-69fc-47ec-adaa-3c4f7a40df19
+
+</details>
+
+> It is highly recommended to mount a persistent cache dir on the host into the Conscan container. This will make the scanning as it will persist the Vulnerability(and other) Databases.
+
+Example:
+```bash
+$ docker run --rm -it \
+    -v ./cache:/.cache \     
+    --name conscan  ghcr.io/peek8/conscan:latest \
+    scan alpine:lates
+```
+
+You can see all the available image tags at [github container repository](https://github.com/peek8/conscan/pkgs/container/conscan).
+
+# 🚀 Quick Start
+
+## General Usage
+
+```bash
+$ conscan scan [Flags] yourimage:tag
+```
+
+Examples:
+
+**Scan a container image locally available which uses the Podman/Docker daemon for local images**
+```bash
+$ conscan scan alpine-sec:1.0
+```
+<details>
+<summary>Result</summary>
+
+https://github.com/user-attachments/assets/5b99fe08-f37a-4a3c-ab73-b9162fddfc9f
+
+
+</details>
+
+**Scan container images from registry eg. dockerhub**
+```bash
+$ conscan scan docker.io/yourimage:tag
+```
+
+or from github image repo
+```bash
+$ conscan scan ghcr.io/yourimage:tag
+```
+
+**By default, `conscan` will scan everything. If you are interested for specific scan report, you can use the flag `--scanners` with comma separated values. The supported values are: `[vuln secret package cis storage]`. For example, to scan for only vulnerabilities and exposed secrets you can use like:**
+```bash
+$ conscan scan --scanners=vuln,secret yourimage:tag
+```
+
+## 📊 Report Formats
 
 Conscan supports multiple output formats to fit different workflows:
 
 - Table → Human-readable in CLI
 - JSON → For integration with pipelines & automation
 - HTML → Shareable reports for teams and auditors
+
+To get report in different format, you can use the flag `--format`(-f in short). Supported values are: `[json table html]`, if not provided default format is `table`.
+
+### Examples:
+
+**By default, table format report**
+```bash
+$ conscan scan alpine-sec:1.0
+```
+<details>
+<summary>Result</summary>
+
+https://github.com/user-attachments/assets/5b99fe08-f37a-4a3c-ab73-b9162fddfc9f
+
+</details>
+
+**HTML format report: to view the html its better to save report to a file and view the report in a browser, In that case you can use --output flag**
+```bash
+$ conscan scan --format html --output report.html alpine-sec:1.0
+```
+<details>
+<summary>Result</summary>
+
+https://github.com/user-attachments/assets/47cf69c4-a11f-4244-80f1-8f25af42e8e0
+
+</details>
+
+**JSON format report**
+
+```bash
+$ conscan scan --format html --output report.html alpine-sec:1.0
+```
+
+<details>
+<summary>Sample Json output</summary>
+
+```json
+{
+  "CreatedAt": "2025-10-01T11:37:31.562284+06:00",
+  "CreatedAtStr": "2025-10-01 05:37:31 UTC",
+  "ArtifactName": "alpine-sec:1.0",
+  "ArtifactType": "container_image",
+  "metadata": {
+    "Size": 8463360,
+    "sizeStr": "8 MB",
+    "OS": {
+      "Family": "alpine",
+      "Name": "3.22.0_alpha20250108"
+    },
+    "ImageID": "sha256:cf7a952180715b0ae2148cc8d832130bd008a295e707d7f8fdc3bdf144b630ba",
+    "RepoTags": [
+      "docker.io/asraf344/alpine-sec:1.0",
+      "ghcr.io/asraf344/alpine-sec:1.0",
+      "localhost/alpine-sec:1.0"
+    ],
+    "RepoDigests": [
+      "docker.io/asraf344/alpine-sec@sha256:924f7457fa28ebd1e55c8d142e8f866a8020eaea4f2f9ec92bc47ef1ae7135ba",
+      "ghcr.io/asraf344/alpine-sec@sha256:924f7457fa28ebd1e55c8d142e8f866a8020eaea4f2f9ec92bc47ef1ae7135ba",
+      "localhost/alpine-sec@sha256:924f7457fa28ebd1e55c8d142e8f866a8020eaea4f2f9ec92bc47ef1ae7135ba"
+    ],
+    "ImageConfig": {
+      "architecture": "arm64",
+      "os": "linux",
+      "created": "2025-09-23T11:01:55.383691556Z"
+    }
+  },
+  "vulnerabilities": [
+    {
+      "VulnerabilityID": "CVE-2025-26519",
+      "PkgID": "musl@1.2.5-r9",
+      "PkgName": "musl",
+      "InstalledVersion": "1.2.5-r9",
+      "FixedVersion": "1.2.5-r10",
+      "Status": "fixed",
+      "DataSourceURL": "https://security.alpinelinux.org/vuln/CVE-2025-26519",
+      "Title": "musl libc 0.9.13 through 1.2.5 before 1.2.6 has an out-of-bounds write ...",
+      "Description": "musl libc 0.9.13 through 1.2.5 before 1.2.6 has an out-of-bounds write vulnerability when an attacker can trigger iconv conversion of untrusted EUC-KR text to UTF-8.",
+      "Severity": "High",
+      "_": 4,
+      "CweIDs": [
+        "CWE-787"
+      ],
+      "CvssScore": 8.1,
+      "References": [
+        "http://www.openwall.com/lists/oss-security/2025/02/13/2",
+        "http://www.openwall.com/lists/oss-security/2025/02/13/3",
+      ],
+      "PublishedDate": "2025-02-14T04:15:09.05Z",
+      "LastModifiedDate": "2025-02-14T17:15:23.09Z"
+    }
+  ],
+  "vulnerabilitySummary": {
+    "totalCount": 14,
+    "criticalCount": 0,
+    "highCount": 2,
+    "mediumCount": 6,
+    "lowCount": 6,
+    "unknowsCount": 0
+  },
+  "secrets": [
+    {
+      "Target": "/tst.txt",
+      "Category": "GitHub",
+      "Severity": "CRITICAL",
+      "Title": "GitHub Personal Access Token",
+      "StartLine": 4,
+      "EndLine": 7,
+      "Content": "\n# Fake GitHub Token\nGITHUB_TOKEN=****************************************1234",
+      "Description": "Secret(s) found in file system",
+      "LocationType": "FileSystem"
+    },
+    {
+      "Target": "/tst.txt",
+      "Category": "Slack",
+      "Severity": "MEDIUM",
+      "Title": "Slack Webhook",
+      "StartLine": 7,
+      "EndLine": 10,
+      "Content": "\n# Fake Slack Webhook\nSLACK_WEBHOOK=*****************************************************************************",
+      "Description": "Secret(s) found in file system",
+      "LocationType": "FileSystem"
+    },
+    {
+      "Target": "alpine-sec:1.0",
+      "Category": "GitHub",
+      "Severity": "CRITICAL",
+      "Title": "GitHub Personal Access Token",
+      "StartLine": 45,
+      "EndLine": 48,
+      "Content": "\n  \"Env\": [\n  \"PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin\",\n  \"GITHUB_TOKEN=****************************************6759\"\n  ],",
+      "Description": "Secret(s) found in Environment Variables",
+      "LocationType": "EnvVar"
+    }
+  ],
+  "sboms": {
+    "spdxVersion": "SPDX-2.3",
+    "dataLicense": "CC0-1.0",
+    "SPDXID": "SPDXRef-DOCUMENT",
+    "name": "alpine-sec",
+    "documentNamespace": "https://anchore.com/syft/image/alpine-sec-3bf7b6ab-6c74-4153-8346-e2079f0be8ef",
+    "creationInfo": {
+      "licenseListVersion": "3.27",
+      "creators": [
+        "Organization: Anchore, Inc",
+        "Tool: syft-1.32.0"
+      ],
+      "created": "2025-10-01T05:37:33Z"
+    },
+    "packages": [
+      {
+        "name": "alpine-baselayout",
+        "SPDXID": "SPDXRef-Package-apk-alpine-baselayout-3eb66fe65cb1f527",
+        "versionInfo": "3.6.8-r1",
+        "supplier": "Person: Natanael Copa (ncopa@alpinelinux.org)",
+        "originator": "Person: Natanael Copa (ncopa@alpinelinux.org)",
+        "downloadLocation": "https://git.alpinelinux.org/cgit/aports/tree/main/alpine-baselayout",
+        "filesAnalyzed": true,
+        "packageVerificationCode": {
+          "packageVerificationCodeValue": "6a22bff30e2aed347029eeb9d51c810613705455"
+        },
+        "sourceInfo": "acquired package info from APK DB: /lib/apk/db/installed",
+        "licenseConcluded": "NOASSERTION",
+        "licenseDeclared": "GPL-2.0-only",
+        "copyrightText": "NOASSERTION",
+        "description": "Alpine base dir structure and init scripts",
+        "externalRefs": [
+          {
+            "referenceCategory": "SECURITY",
+            "referenceType": "cpe23Type",
+            "referenceLocator": "cpe:2.3:a:alpine-baselayout:alpine-baselayout:3.6.8-r1:*:*:*:*:*:*:*"
+          },
+          {
+            "referenceCategory": "SECURITY",
+            "referenceType": "cpe23Type",
+            "referenceLocator": "cpe:2.3:a:alpine-baselayout:alpine_baselayout:3.6.8-r1:*:*:*:*:*:*:*"
+          }
+        ]
+      }
+    ]
+  },
+  "cisScans": {
+    "image": "alpine-sec:1.0",
+    "summary": {
+      "fatal": 1,
+      "warn": 1,
+      "info": 2,
+      "skip": 0,
+      "pass": 12
+    },
+    "details": [
+      {
+        "code": "CIS-DI-0010",
+        "title": "Do not store credential in environment variables/files",
+        "level": "FATAL",
+        "alerts": [
+          "Suspicious ENV key found : GITHUB_TOKEN on /bin/sh -c #(nop) ENV GITHUB_TOKEN=******* (You can suppress it with --accept-key)"
+        ]
+      },
+      {
+        "code": "CIS-DI-0001",
+        "title": "Create a user for the container",
+        "level": "WARN",
+        "alerts": [
+          "Last user should not be root"
+        ]
+      },
+      {
+        "code": "CIS-DI-0005",
+        "title": "Enable Content trust for Docker",
+        "level": "INFO",
+        "alerts": [
+          "export DOCKER_CONTENT_TRUST=1 before docker pull/build"
+        ]
+      },
+      {
+        "code": "CIS-DI-0006",
+        "title": "Add HEALTHCHECK instruction to the container image",
+        "level": "INFO",
+        "alerts": [
+          "not found HEALTHCHECK statement"
+        ]
+      }
+    ]
+  },
+  "storageAnalysis": {
+    "image_source": "",
+    "efficiency": 100,
+    "wasted_bytes": 0,
+    "wasted_bytes_human": "0 B",
+    "user_wasted_percent": 0,
+    "inefficient_files": [],
+    "results": [
+      {
+        "name": "highestUserWastedPercent",
+        "status": "PASS"
+      },
+      {
+        "name": "lowestEfficiency",
+        "status": "PASS"
+      }
+    ]
+  }
+}
+```
+
+</details>
+
+You can download/view the full JSON here: [resources/sample-json-report.json](./resources/sample-json-report.json)
+
+<!-- 
+# ⚙️ Integration with CI/CD
+
+Show how to plug it into GitHub Actions, GitLab CI, Jenkins, etc.
+(Sample YAML snippet for GitHub Actions or GitLab would help.)
+
+# 📌 Roadmap
+
+(Optional — upcoming features you plan to add, e.g. multi-registry auth, Kubernetes admission controller integration, etc.)
+
+# 🤝 Contributing
+
+(How others can contribute, open issues, PRs, coding style guidelines, etc.)
+-->
+
+# 📜 License
+- Apache 2.0, see more details at [LICENSE File](./LICENSE).
