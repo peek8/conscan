@@ -443,6 +443,152 @@ $ conscan scan --format html --output report.html alpine-sec:1.0
 
 You can download/view the full JSON here: [resources/sample-json-report.json](./resources/sample-json-report.json)
 
+
+# Private Registry Authentication
+
+## Local Registry Credentials
+If you are in your laptop/PC and want to use the conscan at CLI, then to scan an image from private registry, you have to [docker login](https://docs.docker.com/reference/cli/docker/login/) first.
+
+When a container runtime is not present, conscan can still utilize credentials configured in common credential sources (such as `~/.docker/config.json`). It will pull images from private registries using these credentials.
+
+The common syntax of docker login command is:
+```bash
+$ docker login registry.example.com --user your-user --password superSecret
+```
+
+- If you have token, you can use that as password, eg to login dockerhub using token, you can use following command:
+
+```bash
+$ echo $DOCKER_TOKEN | podman login docker.io -u your-user --password-stdin
+```
+- Same way for Github Registry:
+
+```bash
+$ echo $CR_PAT | docker login ghcr.io -u your-user --password-stdin
+```
+
+- For AWS ECR, you have to get login password first and use that at `docker login`, eg
+
+```bash
+$ aws ecr get-login-password --region $AWS_REGION \
+  | docker login --username AWS \
+    --password-stdin 123456.dkr.ecr.$AWS_REGION.amazonaws.com
+```
+Note: The above aws command will work provided that you have the proper aws configuration settings for aws cli. One easy option is to use environment variables like:
+
+```bash
+$ export AWS_ACCESS_KEY_ID=AKIAIOSFODNN7EXAMPLE
+$ export AWS_SECRET_ACCESS_KEY=wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
+$ export AWS_REGION=us-west-2
+```
+There are other options, see more details at [Configuring settings for the AWS CLI](https://docs.aws.amazon.com/cli/v1/userguide/cli-chap-configure.html) page.
+
+> For all the private registry while using `conscan` to scan image use the Full Image path with registry, eg:
+```bash
+$ conscan scan registry.example.com/your-image:tag
+``` 
+
+## Registry Credentials in Container
+If you want to use docker/podman to scan some images from private registry, the easy way would be to mount the `docker config.json` into container. 
+
+For example, in some linux machine:
+
+```bash
+$ docker run --rm -it \
+  -v ./cache:/.cache \
+  -v ~/.docker/config.json:/.docker/config.json  \ 
+  --name conscan  ghcr.io/peek8/conscan:latest \
+  scan registry.example.com/your-image:tag
+```
+
+At Mac, the docker config.json file might be at path `~/.config/containers/auth.json`, in that case it would be:
+
+```bash
+$ docker run --rm -it \
+  -v ./cache:/.cache \
+  -v ~/.config/containers/auth.json:/.docker/config.json  \ 
+  --name conscan  ghcr.io/peek8/conscan:latest \
+  scan registry.example.com/your-image:tag
+```
+
+## Registry Credentials in Kubernetes
+### Use Simple Secret
+You can create a Secret using the above mentioned `~/.docker/config.json`. And mount that secret in the conscan container.
+- Create secret `secret.yaml` using config.json
+```yaml
+    apiVersion: v1
+    kind: Secret
+    metadata:
+      name: registry-config
+      namespace: awesomeapp
+    data:
+      config.json: <base64 encoded config.json>
+```
+
+Apply it:
+```bash
+$ kubectl apply -f secret.yaml
+```
+
+- Create your pod running conscan. The  `config.json` file needs to be mounted at `/.docker/config.json`. here's pod.yaml:
+
+```yaml
+apiVersion: v1
+kind: Pod
+spec:
+  containers:
+    - image: ghcr.io/peek8/conscan:latest 
+      name: conscan-private-registry
+      volumeMounts:
+      - mountPath: /.docker
+        name: registry-config
+        readOnly: true
+      args:
+        -  scan 
+        - "registry.example.com/your-image:tag"
+  volumes:
+  - name: registry-config
+    secret:
+      secretName: registry-config
+```
+- Apply pod.yaml
+
+```bash
+$ kubectl apply -f pod.yaml
+```
+
+> Note: At `args` section of pod, you can add `--format` to get different formats than table eg. `--format json` for json format. And to save it to a file use --output.
+
+### Use Image Pull Secret
+You can also create secret of type `kubernetes.io/dockerconfigjson` that can be used in Pod at `imagePullSecrets` field.
+
+The secret would be in format:
+```yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: regcred
+  namespace: awesomeapps
+data:
+  .dockerconfigjson: UmVhbGx5IHJlYWxseSByZWVlZWVlZWVlZWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGx5eXl5eXl5eXl5eXl5eXl5eXl5eSBsbGxsbGxsbGxsbGxsbG9vb29vb29vb29vb29vb29vb29vb29vb29vb25ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubmdnZ2dnZ2dnZ2dnZ2dnZ2dnZ2cgYXV0aCBrZXlzCg==
+type: kubernetes.io/dockerconfigjson
+```
+
+And the `pod.yaml` will be like:
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: private-reg
+spec:
+  containers:
+  - image: ghcr.io/peek8/conscan:latest 
+    name: conscan-private-registry
+  imagePullSecrets:
+  - name: regcred
+```
+See more about using imagePullSecrets at [Kubernetes Private Registry doc](https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/)
+
 <!-- 
 # ⚙️ Integration with CI/CD
 
