@@ -378,6 +378,11 @@ type ReportAggregrator struct {
 func (ra *ReportAggregrator) newReport() *models.ScanReport {
 	tr := ra.Results.TrivyResult
 
+	unknownOS := models.OS{
+		Name:   "-",
+		Family: "-",
+	}
+
 	return &models.ScanReport{
 		CreatedAt:    tr.CreatedAt,
 		CreatedAtStr: fmt.Sprintf("%s UTC", tr.CreatedAt.UTC().Format("2006-01-02 15:04:05")),
@@ -386,10 +391,12 @@ func (ra *ReportAggregrator) newReport() *models.ScanReport {
 		Metadata: models.ImageMetadata{
 			Size:    tr.Metadata.Size,
 			SizeStr: utils.HumanReadableSize(tr.Metadata.Size),
-			OS: models.OS{
-				Name:   tr.Metadata.OS.Name,
-				Family: string(tr.Metadata.OS.Family),
-			},
+			OS: utils.EitherOrFunc(lo.IsNotNil(tr.Metadata.OS), func() models.OS {
+				return models.OS{
+					Name:   tr.Metadata.OS.Name,
+					Family: string(tr.Metadata.OS.Family),
+				}
+			}, unknownOS),
 			ImageID:     tr.Metadata.ImageID,
 			RepoTags:    tr.Metadata.RepoTags,
 			RepoDigests: tr.Metadata.RepoDigests,
