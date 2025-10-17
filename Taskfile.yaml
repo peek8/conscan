@@ -164,7 +164,6 @@ tasks:
     deps: [tools, tmpdir]
     method: checksum
     cmds:
-      - silent: true
       - "{{ .RELEASE_CMD }}"
       
   run:
