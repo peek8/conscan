@@ -589,12 +589,38 @@ spec:
 ```
 See more about using imagePullSecrets at [Kubernetes Private Registry doc](https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/)
 
-<!-- 
 # ⚙️ Integration with CI/CD
 
-Show how to plug it into GitHub Actions, GitLab CI, Jenkins, etc.
-(Sample YAML snippet for GitHub Actions or GitLab would help.)
+## Integrating With Github Action
+We can easily use this [conscan](https://github.com/peek8/conscan) tool with github action. With the github action the html reports are generated and these reports can be published directly to GitHub Pages using GitHub Actions, no manual steps required 🚀.
 
+This makes it super easy to:
+
+ ✅ Automate container image vulnerability scans
+
+ ✅ Host & share scan results securely
+
+ ✅ Integrate with your CI/CD workflow seamlessly
+
+Here’s a quick example of how it works:
+- GitHub Actions runs on each push
+- conscan scans all container images
+- Reports are committed and published automatically to the eg. gh-pages branch
+- Accessible instantly at GitHub Pages link. 
+
+
+I have setup a repo named [conscan-sample](https://github.com/peek8/conscan-sample) where I am building some sample images (those images doesn't have any real use case, just for testing) and scanning them with [conscan](https://github.com/peek8/conscan) tool and publish the report to github pages. 
+
+For more details, See the `scan` Job and `update-index` Job at the [github action workflows at conscan-sample repo](https://github.com/peek8/conscan-sample/blob/main/.github/workflows/build.yaml#L63-L111).
+
+The generate reports are available at [Conscan-sample Github Pages](https://peek8.github.io/conscan-sample/conscan-reports/).
+
+
+Isn't it awesome, You can actually do a lot without doing almost anything (other than copy/paste) :). 
+
+Cheers, Happy Scanning !! 🎉 🎉
+
+<!-- 
 # 📌 Roadmap
 
 (Optional — upcoming features you plan to add, e.g. multi-registry auth, Kubernetes admission controller integration, etc.)
