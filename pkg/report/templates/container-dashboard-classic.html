@@ -1,0 +1,871 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>ConScan Scan Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #333;
+            line-height: 1.4;
+            margin: 0;
+            padding: 10px;
+        }
+        a {
+            color: #0fa7af;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 10px;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #49a9c4, #09a1ce);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 1.8em;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+
+        .header p {
+            font-size: 1em;
+            opacity: 0.9;
+            margin: 0;
+        }
+
+        .image-info {
+            /*background: linear-gradient(135deg, #308ccc, #3e96bd);*/
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 15px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+            color: white;
+            border: 1px solid #d3e9ea;
+            border-radius: 12px;
+        }
+
+        .image-info h2 {
+            margin-bottom: 10px;
+            font-size: 1.2em;
+            font-weight: 600;
+            color: #0b4858;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+        }
+
+        .info-item {
+            background: linear-gradient(135deg, #12b3e2, #12b3e2);
+            color: white;
+            padding: 10px;
+            border-radius: 8px;
+            border-left: 4px solid #218aa7;
+            transition: transform 0.3s ease;
+        }
+
+        .info-item:hover {
+            transform: translateX(5px);
+        }
+
+        .info-label {
+            font-weight: bold;
+            /*color: #4a5568;*/
+        }
+
+        .info-value {
+            /*color: #2d3748;*/
+            margin-top: 5px;
+        }
+
+        .section {
+            background: rgba(255, 255, 255, 0.95);
+            margin-bottom: 15px;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            backdrop-filter: blur(10px);
+        }
+
+        .section-header {
+            background: linear-gradient(135deg, #4aa7c3, #0bbcf0);
+            color: white;
+            padding: 12px 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .section-title {
+            font-size: 1.1em;
+            font-weight: 600;
+        }
+
+        .badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8em;
+            font-weight: 600;
+        }
+
+        .badge-critical, .badge-fatal { background: #ff1744; color: white; box-shadow: 0 4px 15px rgba(255, 23, 68, 0.4); }
+        .badge-high, .badge-warn { background: #ff6d00; color: white; box-shadow: 0 4px 15px rgba(255, 109, 0, 0.4); }
+        .badge-medium, .badge-info { background: #ffc400; color: #333; box-shadow: 0 4px 15px rgba(255, 196, 0, 0.4); }
+        .badge-low, .badge-skip { background: #00e676; color: white; box-shadow: 0 4px 15px rgba(0, 230, 118, 0.4); }
+        .badge-info, .badge-unknown, .badge-ignore, .badge-pass  { background: #30a2e9; color: white; box-shadow: 0 4px 15px rgb(146 216 242 / 40%); }
+        .badge-negligible  { background: #606f76; color: white; box-shadow: 0 4px 15px rgb(174 194 209 / 40%);}
+
+        .section-content {
+            padding: 10px;
+        }
+
+        .vulnerability-item, .package-item, .secret-item, .violation-item {
+            /*border: 2px solid rgba(255, 105, 180, 0.2);*/
+            border: 2px solid rgb(78 52 85 / 20%);
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 8px;
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(5px);
+            transition: all 0.3s ease;
+        }
+
+        .vulnerability-item:hover, .package-item:hover, .secret-item:hover, .violation-item:hover {
+            /*box-shadow: 0 8px 25px rgba(255, 105, 180, 0.3);
+            border-color: rgba(255, 105, 180, 0.5);*/
+            transform: translateY(-2px);
+        }
+
+        .vuln-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .vuln-title {
+            font-weight: 600;
+            color: #1f2937;
+            flex: 1;
+            font-size: 0.9em;
+        }
+
+        .vuln-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 8px;
+            margin-top: 5px;
+        }
+        
+        .package-details {
+            display: grid;
+            grid-template-columns: 20% 40% 40%;
+            gap: 8px;
+            margin-top: 5px;
+        }
+
+        .detail-item {
+            display: flex;
+            justify-content: flex-start;
+            gap: 10px;
+            font-size: 0.85em;
+        }
+
+        .secret-item .detail-item.location-item {
+            gap: 3px;
+        }
+
+        .secret-item .detail-item.location-item .detail-value {
+            color: #48297f;
+            word-break: break-all;
+        }
+
+        .secret-item .detail-item.pattern-item {
+            flex-direction: column;
+            gap: 3px;
+        }
+
+        .secret-item .detail-item.pattern-item .detail-value {
+            font-family: monospace;
+            background: #f3f4f6;
+            padding: 4px 6px;
+            border-radius: 4px;
+            font-size: 0.8em;
+            color: #6b7280;
+            word-break: break-all;
+        }
+
+        .detail-label {
+            font-weight: 600;
+            color: #15b9e9;
+            min-width: 80px;
+        }
+
+        .detail-value {
+            color: #2d3748;
+        }
+
+        .package-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+
+        .package-name {
+            font-weight: 600;
+            color: #1f2937;
+            font-size: 0.9em;
+        }
+
+        .package-version {
+            color: #2979ff;
+            font-weight: 600;
+            font-size: 0.85em;
+            text-shadow: 0 1px 2px rgba(41, 121, 255, 0.2);
+        }
+
+        .secret-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+
+        .secret-type {
+            font-weight: 600;
+            color: #ff1744;
+            font-size: 0.9em;
+            text-shadow: 0 1px 2px rgba(255, 23, 68, 0.2);
+        }
+
+        .secret-location {
+            color: #6b7280;
+            font-family: monospace;
+            background: #f3f4f6;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-size: 0.8em;
+        }
+
+        .violation-header {
+            margin-bottom: 5px;
+        }
+
+        .violation-rule {
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 3px;
+            font-size: 0.9em;
+        }
+
+        .violation-description {
+            color: #6b7280;
+            margin-bottom: 5px;
+            font-size: 0.85em;
+        }
+
+        /*Storage Analysis*/
+        .storage-metrics {
+            background: rgba(255, 255, 255, 0.5);
+            padding: 15px;
+            border-radius: 8px;
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .metric-item {
+            display: flex;
+            justify-content: flex-start;
+            gap: 10px;
+            padding: 8px;
+            background: rgba(255, 255, 255, 0.7);
+            border-radius: 6px;
+            border-left: 3px solid #2563eb;
+        }
+
+        .metric-label {
+            font-weight: 600;
+            color: #1f2937;
+            min-width: 100px;
+            font-size: 0.85em;
+        }
+
+        .metric-value {
+            color: #4b5563;
+            font-weight: 500;
+            font-size: 0.85em;
+        }
+
+        .metric-value.efficiency {
+            color: #00e676;
+            font-weight: 600;
+        }
+
+        .metric-value.wasted {
+            color: #ff6d00;
+            font-weight: 600;
+        }
+
+        .metric-value.user-wasted {
+            color: #ffc400;
+            font-weight: 600;
+        }
+
+        .files-table {
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 6px;
+            overflow: hidden;
+            margin-bottom: 15px;
+        }
+
+        .table-header {
+            display: grid;
+            grid-template-columns: 60px 100px 1fr;
+            gap: 10px;
+            background: linear-gradient(135deg, #8b54b5, #d855a9, #d69669);;
+            color: white;
+            padding: 10px;
+            font-weight: 600;
+            font-size: 0.85em;
+        }
+
+        .table-row {
+            display: grid;
+            grid-template-columns: 60px 100px 1fr;
+            gap: 10px;
+            padding: 8px 10px;
+            border-bottom: 1px solid #e5e7eb;
+            font-size: 0.8em;
+            transition: background-color 0.3s ease;
+        }
+
+        .table-row:hover {
+            background: rgba(102, 126, 234, 0.1);
+        }
+
+        .table-row:last-child {
+            border-bottom: none;
+        }
+
+        .col-count {
+            text-align: center;
+            font-weight: 500;
+        }
+
+        .col-space {
+            text-align: right;
+            font-weight: 600;
+            color: #ff6d00;
+        }
+
+        .col-path {
+            font-family: monospace;
+            color: #4b5563;
+            word-break: break-all;
+        }
+
+        .results-list {
+            margin-bottom: 15px;
+        }
+
+        .result-item {
+            display: flex;
+            gap: 10px;
+            padding: 6px 10px;
+            margin-bottom: 5px;
+            background: rgba(255, 255, 255, 0.7);
+            border-radius: 4px;
+            font-size: 0.85em;
+        }
+
+        .result-status {
+            font-weight: 600;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 0.8em;
+            min-width: 50px;
+            text-align: center;
+        }
+
+        .result-item.pass .result-status {
+            background: #00e676;
+            color: white;
+        }
+
+        .result-item.skip .result-status {
+            background: #ffc400;
+            color: #333;
+        }
+
+        .result-item.fail .result-status {
+            background: #ff1744;
+            color: white;
+        }
+
+        .result-name {
+            color: #4b5563;
+            flex: 1;
+        }
+
+        .results-summary {
+            background: rgba(0, 230, 118, 0.1);
+            border: 1px solid #00e676;
+            border-radius: 6px;
+            padding: 10px;
+            font-size: 0.9em;
+            color: #1f2937;
+        }
+
+        .summary-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .summary-card {
+            padding: 15px;
+            border-radius: 12px;
+            text-align: center;
+            /* box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+            border: 2px solid rgba(255, 255, 255, 0.3); */
+            backdrop-filter: blur(10px);
+            transition: transform 0.3s ease;
+        }
+
+        .summary-card:hover {
+            transform: translateY(-5px) scale(1.02);
+        }
+
+        .summary-card.critical-card {
+            background: linear-gradient(135deg, #ff1744, #ff5722);
+            color: white;
+        }
+
+        .summary-card.high-card {
+            background: linear-gradient(135deg, #ff6d00, #ff9800);
+            color: white;
+        }
+
+        .summary-card.medium-card {
+            background: linear-gradient(135deg, #ffc400, #ffeb3b);
+            color: #333;
+        }
+
+        .summary-card.exposed-secrets {
+            background-color: #ec4899;
+            color: white;
+        }
+
+        .summary-card.cis-violation{
+            background-color: #e3177c;
+            color: white;
+        }
+        
+        .summary-card.storage-analysis{
+            background-color: #12b3e2;
+            color: white;
+        }
+
+        
+
+        .summary-card.low-card {
+            background: linear-gradient(135deg, #00e676, #4caf50);
+            color: white;
+        }
+
+        .summary-number {
+            font-size: 1.8em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .summary-label {
+            color: #4a5568;
+            font-weight: 500;
+        }
+
+        .summary-card.critical-card .summary-number,
+        .summary-card.critical-card .summary-label { color: white; }
+        .summary-card.high-card .summary-number,
+        .summary-card.high-card .summary-label { color: white; }
+        .summary-card.medium-card .summary-number,
+        .summary-card.medium-card .summary-label { color: #333; }
+        .summary-card.exposed-secrets .summary-label { color: white; }
+        .summary-card.cis-violation .summary-label { color: white; }
+        .summary-card.storage-analysis .summary-label { color: white; }
+        .summary-card.low-card .summary-number,
+        .summary-card.low-card .summary-label { color: white; }
+
+        .scrollable-container {
+            max-height: 400px;
+            overflow-y: auto;
+            border: 2px solid rgb(105 238 255 / 30%);
+            border-radius: 8px;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(255, 245, 245, 0.9));
+            padding: 10px;
+        }
+
+        .scrollable-container::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .scrollable-container::-webkit-scrollbar-track {
+            background: #f3f4f6;
+            border-radius: 3px;
+        }
+
+        .scrollable-container::-webkit-scrollbar-thumb {
+            background: #6b7280;
+            border-radius: 3px;
+        }
+
+        .scrollable-container::-webkit-scrollbar-thumb:hover {
+            background: #4b5563;
+        }
+
+        @media (max-width: 768px) {
+            .container { padding: 5px; }
+            .header { padding: 15px; }
+            .header h1 { font-size: 1.5em; }
+            .vuln-header { flex-direction: column; align-items: flex-start; }
+            .summary-cards { grid-template-columns: repeat(2, 1fr); }
+            .info-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>ConScan Image Scan Dashboard</h1>
+            <p>ConScan, A tool from Peek8.io, Scans everything in an Image !</p>
+        </div>
+
+        <div class="image-info">
+            <h2>Image Information</h2>
+            <div class="info-grid">
+                <div class="info-item">
+                    <div class="info-label">Image Name</div>
+                    <div class="info-value">{{.ArtifactName}}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Base OS</div>
+                    <div class="info-value">{{.Metadata.OS.Family}} {{.Metadata.OS.Name}}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Architecture</div>
+                    <div class="info-value">{{.Metadata.ImageConfig.OS}}/{{.Metadata.ImageConfig.Architecture}}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Size</div>
+                    <div class="info-value">{{.Metadata.SizeStr}}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Scan Date</div>
+                    <div class="info-value">{{.CreatedAtStr}}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Scanner Version</div>
+                    <div class="info-value">ConScan v0.01.1</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="summary-cards">
+            {{if .VulnerabilitySummary}}
+            <div class="summary-card critical-card">
+                <div class="summary-number">{{.VulnerabilitySummary.CriticalCount}}</div>
+                <div class="summary-label">Critical Vulnerabilities</div>
+            </div>
+            <div class="summary-card high-card">
+                <div class="summary-number">{{.VulnerabilitySummary.HighCount}}</div>
+                <div class="summary-label">High Vulnerabilities</div>
+            </div>
+            {{end}}
+            <div class="summary-card exposed-secrets">
+                <div class="summary-number">{{.Secrets | len}}</div>
+                <div class="summary-label">Exposed Secrets</div>
+            </div>
+            {{if .SBOMs}}
+            <div class="summary-card low-card">
+                <div class="summary-number">{{.SBOMs.Packages | len}}</div>
+                <div class="summary-label">Installed Packages</div>
+            </div>
+            {{end}}
+            {{if .CISScans}}
+            <div class="summary-card cis-violation">
+                <div class="summary-number">{{.CISScans.Details | len}}</div>
+                <div class="summary-label">CIS Violations</div>
+            </div>
+            {{end}}
+            {{if .StorageAnalysis}}
+            <div class="summary-card storage-analysis">
+                <div class="summary-number">{{.StorageAnalysis.Efficiency | twoDecimalPercentage}}</div>
+                <div class="summary-label">Storage Efficiency</div>
+            </div>
+            {{end}}
+        </div>
+
+        <!-- Vlunerabilities Section -->
+         {{if .VulnerabilitySummary}}
+        <div class="section">
+            <div class="section-header">
+                <div class="section-title">Package Vulnerabilities</div>
+                <div class="badge badge-critical">{{.VulnerabilitySummary.TotalCount}} Total</div>
+            </div>
+            <div class="section-content">
+                <div class="scrollable-container">
+                    {{range $vuln := .Vulnerabilities}}      
+                    <div class="vulnerability-item">
+                        <div class="vuln-header">
+                            <div class="vuln-title"><a href="{{$vuln.DataSourceURL}}">{{$vuln.VulnerabilityID}}:</a> {{$vuln | getTitle}}</div>
+                            <div class="badge badge-{{$vuln.Severity | toLower}}">{{$vuln.Severity}}</div>
+                        </div>
+                        <div class="vuln-details">
+                            <div class="detail-item">
+                                <span class="detail-label">Package:</span>
+                                <span class="detail-value">{{$vuln.PkgName}}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Installed Version:</span>
+                                <span class="detail-value">{{$vuln.InstalledVersion}}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Fixed Version:</span>
+                                <span class="detail-value">{{$vuln.FixedVersion}}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">CVSS Score:</span>
+                                <span class="detail-value">{{$vuln | getCvssScore}}</span>
+                            </div>
+                        </div>
+                    </div>
+                    {{end}}
+                </div>
+            </div>
+        </div>
+        {{end}}
+
+        
+        <!-- Secrets Section -->
+        <div class="section">
+            <div class="section-header">
+                <div class="section-title">Exposed Secrets</div>
+                <div class="badge badge-high">{{.Secrets | len}} Found</div>
+            </div>
+            <div class="section-content">
+                <div class="scrollable-container">
+                    {{range $sec := .Secrets}}    
+                    <div class="secret-item">
+                        <div class="secret-header">
+                            <div class="secret-type">{{$sec.Title}}</div>
+                            <div class="badge badge-{{$sec.Severity | toLower}}">{{$sec.Severity}}</div>
+                        </div>
+                        <div class="vuln-details">
+                            <div class="detail-item location-item">
+                                <span class="detail-label">Location:</span>
+                                <span class="detail-value">{{$sec | getSecretLocation}}</span>
+                            </div>
+                            <div class="detail-item pattern-item">
+                                <span class="detail-label">Pattern:</span>
+                                <span class="detail-value">{{$sec.Content | htmlLineBreak}}</span>
+                            </div>
+                            <!--<div class="detail-item">
+                                <span class="detail-label">Line:</span>
+                                <span class="detail-value">15</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Risk:</span>
+                                <span class="detail-value">Unauthorized AWS resource access</span>
+                            </div> -->
+                        </div>
+                    </div>
+                    {{end}}
+                
+                </div>
+            </div>
+        </div>
+
+        <!--CIS Section -->
+        {{if .CISScans}}
+        <div class="section">
+            <div class="section-header">
+                <div class="section-title">CIS Benchmark Violations</div>
+                <div class="badge badge-high">{{.CISScans.Details | len}} Issues</div>
+            </div>
+            <div class="section-content">
+                <div class="scrollable-container">
+                    {{range $cis := .CISScans.Details}}
+                    <div class="violation-item">
+                        <div class="violation-header">
+                            <div class="violation-rule">{{$cis.Code}}: {{$cis.Title}}</div>
+                            <div class="badge badge-{{$cis.Level | toLower}}">{{$cis.Level}}</div>
+                        </div>
+                        <div class="violation-description">
+                            {{$cis.Alerts | slicesToHtmlLineBreak}}
+                        </div>
+                        <!-- <div class="vuln-details">
+                            <div class="detail-item">
+                                <span class="detail-label">Current User:</span>
+                                <span class="detail-value">root (UID: 0)</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Recommendation:</span>
+                                <span class="detail-value">Use USER directive in Dockerfile to set non-root user</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Impact:</span>
+                                <span class="detail-value">Privilege escalation vulnerability</span>
+                            </div>
+                        </div> -->
+                    </div>
+                    {{end}}
+                </div>
+            </div>
+        </div>
+        {{end}}
+
+        <!--Storage Section -->
+        {{if .StorageAnalysis}}
+        <div class="section">
+            <div class="section-header">
+                <div class="section-title">Storage Analysis</div>
+                <div class="badge badge-medium">{{.StorageAnalysis.WastedBytesHuman}} Wasted</div>
+            </div>
+            <div class="section-content">
+                <div class="scrollable-container">
+                    <div class="storage-metrics">
+                        <h3 style="color: #1f2937; margin-bottom: 15px; font-size: 1.1em;">Analysis Summary</h3>
+                        
+                        <div class="metrics-grid">
+                            <div class="metric-item">
+                                <span class="metric-label">Efficiency:</span>
+                                <span class="metric-value efficiency">{{.StorageAnalysis.Efficiency | twoDecimalPercentage}}</span>
+                            </div>
+                            <div class="metric-item">
+                                <span class="metric-label">Wasted Bytes:</span>
+                                <span class="metric-value wasted">{{.StorageAnalysis.WastedBytesHuman}}</span>
+                            </div>
+                            <div class="metric-item">
+                                <span class="metric-label">User Wasted Percent:</span>
+                                <span class="metric-value user-wasted">{{.StorageAnalysis.UserWastedPercent | twoDecimalPercentage }}</span>
+                            </div>
+                        </div>
+
+                        <h4 style="color: #1f2937; margin: 20px 0 10px 0; font-size: 1em;">Inefficient Files:</h4>
+                        
+                        <div class="files-table">
+                            <div class="table-header">
+                                <div class="">Count</div>
+                                <div class="">Wasted Space</div>
+                                <div class="">File Path</div>
+                            </div>
+                            {{range $ef := .StorageAnalysis.InefficientFiles}}
+                            <div class="table-row">
+                                <div class="col-count">{{$ef.Count}}</div>
+                                <div class="col-space">{{$ef.WastedSpace}}</div>
+                                <div class="col-path">{{$ef.FilePath}}</div>
+                            </div>
+                            {{end}}
+                            
+                        </div>
+
+                        <h4 style="color: #1f2937; margin: 20px 0 10px 0; font-size: 1em;">Results:</h4>
+                        
+                        <div class="results-list">
+                            <div class="result-item pass">
+                                <span class="result-status">PASS</span>
+                                <span class="result-name">highestUserWastedPercent</span>
+                            </div>
+                            <div class="result-item skip">
+                                <span class="result-status">SKIP</span>
+                                <span class="result-name">highestWastedBytes: rule disabled</span>
+                            </div>
+                            <div class="result-item pass">
+                                <span class="result-status">PASS</span>
+                                <span class="result-name">lowestEfficiency</span>
+                            </div>
+                        </div>
+
+                        <div class="results-summary">
+                            <strong>Result: PASS</strong> [Total:3] [Passed:2] [Failed:0] [Warn:0] [Skipped:1]
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {{end}}
+
+        <!--Packages Section -->
+        {{if .SBOMs}}
+        <div class="section">
+            <div class="section-header">
+                <div class="section-title">Installed Packages</div>
+                <div class="badge badge-info">{{.SBOMs.Packages | len}} Total</div>
+            </div>
+            <div class="section-content">
+                <div class="scrollable-container">
+                    {{range $pkg := .SBOMs.Packages}}    
+                    <div class="package-item">
+                        <div class="package-header">
+                            <div class="package-name">{{$pkg.PackageName}}</div>
+                            <div class="package-version">{{$pkg.PackageVersion}}</div>
+                        </div>
+                        <div class="package-details">
+                            <div class="detail-item">
+                                <span class="detail-label">License:</span>
+                                <span class="detail-value">{{$pkg.PackageLicenseDeclared}}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Description:</span>
+                                <span class="detail-value">{{$pkg.PackageDescription | emptyValuePlaceholder}}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Source:</span>
+                                <span class="detail-value"><a href="{{$pkg.PackageDownloadLocation}}">{{$pkg.PackageDownloadLocation}}</a></span>
+                            </div>
+                            <!-- <div class="detail-item">
+                                <span class="detail-label">Size:</span>
+                                <span class="detail-value">110 MB</span>
+                            </div> -->
+                        </div>
+                    </div>
+                    {{end}}
+                </div>
+            </div>
+        </div>
+        {{end}}
+
+    </div>
+
+</body></html>

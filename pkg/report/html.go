@@ -24,6 +24,9 @@ import (
 //go:embed templates/container-dashboard.html
 var htmlReportTemplate string
 
+//go:embed templates/container-dashboard-classic.html
+var htmlReportTemplateClassic string
+
 type HtmlWriter struct {
 	Output io.Writer
 }
@@ -36,7 +39,7 @@ func (hw HtmlWriter) Write(_ context.Context, report models.ScanReport) error {
 }
 
 func (hw HtmlWriter) newTemplate() *template.Template {
-	tmpl, err := template.New("html-report").Funcs(funcMap).Parse(htmlReportTemplate)
+	tmpl, err := template.New("html-report").Funcs(funcMap).Parse(htmlReportTemplateClassic)
 
 	utils.ExitOnError(err)
 
