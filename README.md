@@ -4,9 +4,11 @@
 
 
 # Conscan
+**_An open source project from [Peek8.io](https://peek8.io/)._** 
+
 **Secure, lean, and compliant containers made simple.**
 
-Scans a container image for`vulnerabilities`, `exposed secrets`, `inefficient file storage`, `OS packages and software dependencies in use (SBOM)` and `check CIS(Center for Internet Security) Benchmarks`.
+Conscan scans a container image for`vulnerabilities`, `exposed secrets`, `inefficient file storage`, `OS packages and software dependencies in use (SBOM)` and `check CIS(Center for Internet Security) Benchmarks`.
 
 **Conscan Report in CLI (Table Format):**
 ![Image](https://github.com/user-attachments/assets/42cc02b1-c7d4-47b8-a5f8-f837163f8096)
@@ -14,7 +16,7 @@ Scans a container image for`vulnerabilities`, `exposed secrets`, `inefficient fi
 **Conscan Report in HTML Format:**
 ![Image](https://github.com/user-attachments/assets/d40f573f-9a30-4bb2-9618-591c498033fd)
 
-# 📖 Introduction
+# Introduction
 
 Conscan is a lightweight yet powerful container image scanning tool that helps you secure and optimize your container workloads.
 It analyzes container images for potential security risks, misconfigurations, and inefficiencies—giving developers and DevOps teams actionable insights before deploying to production.
@@ -30,7 +32,7 @@ With conscan, you can:
 - Scan both local images and images from remote registries (e.g., Docker Hub).
 - By integrating conscan into your CI/CD pipeline, you can shift security left and ensure your containers are secure, lean, and compliant from the very beginning.
 
-# 💡 Motivation
+# Motivation
 
 There are already great security tools like Trivy, Grype, and Syft — so why build conscan?
 
@@ -54,7 +56,7 @@ Conscan was built to address these pain points by:
 In short:
 👉 Conscan doesn’t try to reinvent the wheel — it puts the best wheels together on one car. 🚗💨
 
-# ✨ Features
+# Features
 ### 🔍 Vulnerability Scanning
 Scans OS packages and software dependencies against known vulnerabilities.
 
@@ -79,7 +81,7 @@ Works with images stored locally or pulled directly from remote registries like 
 ### ⚡ Fast & CI/CD Friendly
 Designed to be easily integrated into build pipelines with minimal overhead.
 
-# 🛠 Powered By
+# Powered By
 
 Conscan leverages well-established open-source security and compliance tools under the hood, combining their strengths into a single unified workflow:
 
@@ -91,7 +93,7 @@ Conscan leverages well-established open-source security and compliance tools und
 
 By orchestrating these tools behind the scenes, conscan provides a streamlined developer experience with consistent reporting, multiple output formats, and optional CIS benchmark validation.
 
-# 🔧 Installation
+# Installation
 ## Pre-Requisites
 If you want to install the binary at your machine, you need to install the following tools to make the binary work:
 - [Trivy](https://github.com/aquasecurity/trivy) 
@@ -150,7 +152,7 @@ $ docker run --rm -it \
 
 You can see all the available image tags at [github container repository](https://github.com/peek8/conscan/pkgs/container/conscan).
 
-# 🚀 Quick Start
+# Quick Start
 
 ## General Usage
 
@@ -187,7 +189,7 @@ $ conscan scan ghcr.io/yourimage:tag
 $ conscan scan --scanners=vuln,secret yourimage:tag
 ```
 
-## 📊 Report Formats
+## Report Formats
 
 Conscan supports multiple output formats to fit different workflows:
 
@@ -589,7 +591,7 @@ spec:
 ```
 See more about using imagePullSecrets at [Kubernetes Private Registry doc](https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/)
 
-# ⚙️ Integration with CI/CD
+# Integration with CI/CD
 
 ## Integrating With Github Action
 We can easily use this [conscan](https://github.com/peek8/conscan) tool with github action. With the github action the html reports are generated and these reports can be published directly to GitHub Pages using GitHub Actions, no manual steps required 🚀.
@@ -620,15 +622,16 @@ Isn't it awesome, You can actually do a lot without doing almost anything (other
 
 Cheers, Happy Scanning !! 🎉 🎉
 
-<!-- 
-# 📌 Roadmap
-
-(Optional — upcoming features you plan to add, e.g. multi-registry auth, Kubernetes admission controller integration, etc.)
-
-# 🤝 Contributing
-
-(How others can contribute, open issues, PRs, coding style guidelines, etc.)
--->
 
 # 📜 License
 - Apache 2.0, see more details at [LICENSE File](./LICENSE).
+
+## Community
+Conscan is a [Peek8](https://peek8.io/) open source project.
+Learn about our open source work and portfolio [here](https://peek8.io/#products).
+If you want to collaborate with us or Invest at [Peek8](https://peek8.io/), please [contact us here](https://peek8.io/#contact).
+
+Issues and PRs are most welcome! Whether it's docs, code improvement, or examples — contributions help the community.
+
+Last but not the least, If you like Conscan  and it helps you to have better container security, consider giving the repository a ⭐.
+Your support helps build a better security first k8s ecosystem.
