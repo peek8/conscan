@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"log"
 
+	"github.com/peek8/conscan/pkg/utils"
 	spdxv23 "github.com/spdx/tools-golang/spdx/v2/v2_3"
-	"peek8.io/conscan/pkg/utils"
 )
 
 func SyftScanForSboms(imageTag string) *spdxv23.Document {

@@ -18,8 +18,8 @@ import (
 	"fmt"
 	"io"
 
+	"github.com/peek8/conscan/pkg/models"
 	"golang.org/x/xerrors"
-	"peek8.io/conscan/pkg/models"
 )
 
 type JsonWriter struct {

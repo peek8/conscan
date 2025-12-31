@@ -9,7 +9,7 @@ import (
 	docklereport "github.com/goodwithtech/dockle/pkg/report"
 	spdxv23 "github.com/spdx/tools-golang/spdx/v2/v2_3"
 
-	"peek8.io/conscan/pkg/grypemodels"
+	"github.com/peek8/conscan/pkg/grypemodels"
 )
 
 type ScanResult struct {

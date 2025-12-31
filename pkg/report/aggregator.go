@@ -20,9 +20,9 @@ import (
 	"github.com/samber/lo"
 	spdxv23 "github.com/spdx/tools-golang/spdx/v2/v2_3"
 
-	"peek8.io/conscan/pkg/grypemodels"
-	"peek8.io/conscan/pkg/models"
-	"peek8.io/conscan/pkg/utils"
+	"github.com/peek8/conscan/pkg/grypemodels"
+	"github.com/peek8/conscan/pkg/models"
+	"github.com/peek8/conscan/pkg/utils"
 )
 
 type VulnerabilitiesAggregrator struct {

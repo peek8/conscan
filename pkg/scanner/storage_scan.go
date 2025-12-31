@@ -21,8 +21,8 @@ import (
 	"github.com/google/go-containerregistry/pkg/legacy/tarball"
 	"github.com/google/go-containerregistry/pkg/name"
 	"github.com/google/go-containerregistry/pkg/v1/remote"
-	"peek8.io/conscan/pkg/models"
-	"peek8.io/conscan/pkg/utils"
+	"github.com/peek8/conscan/pkg/models"
+	"github.com/peek8/conscan/pkg/utils"
 )
 
 func ScanForStorage(imageTag string) *models.StorageAnalysis {

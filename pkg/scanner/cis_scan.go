@@ -13,7 +13,7 @@ import (
 	"log"
 
 	docklereport "github.com/goodwithtech/dockle/pkg/report"
-	"peek8.io/conscan/pkg/utils"
+	"github.com/peek8/conscan/pkg/utils"
 )
 
 func DockleScanForCIS(imageTag string) *docklereport.JsonOutputFormat {

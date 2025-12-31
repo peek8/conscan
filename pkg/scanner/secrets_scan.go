@@ -13,7 +13,7 @@ import (
 	"log"
 
 	trivytypes "github.com/aquasecurity/trivy/pkg/types"
-	"peek8.io/conscan/pkg/utils"
+	"github.com/peek8/conscan/pkg/utils"
 )
 
 func scanSecrets(imageTag string) trivytypes.Report {

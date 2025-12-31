@@ -16,9 +16,9 @@ import (
 	"io"
 	"strings"
 
+	"github.com/peek8/conscan/pkg/models"
+	"github.com/peek8/conscan/pkg/utils"
 	"github.com/samber/lo"
-	"peek8.io/conscan/pkg/models"
-	"peek8.io/conscan/pkg/utils"
 )
 
 //go:embed templates/container-dashboard.html

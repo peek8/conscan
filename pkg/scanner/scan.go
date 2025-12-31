@@ -18,11 +18,11 @@ import (
 
 	"github.com/briandowns/spinner"
 	"github.com/fatih/color"
+	"github.com/peek8/conscan/pkg/log"
+	"github.com/peek8/conscan/pkg/models"
+	"github.com/peek8/conscan/pkg/report"
+	"github.com/peek8/conscan/pkg/utils"
 	"github.com/samber/lo"
-	"peek8.io/conscan/pkg/log"
-	"peek8.io/conscan/pkg/models"
-	"peek8.io/conscan/pkg/report"
-	"peek8.io/conscan/pkg/utils"
 )
 
 // Trivy Scanner Flag

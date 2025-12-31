@@ -12,10 +12,10 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/peek8/conscan/pkg/models"
+	"github.com/peek8/conscan/pkg/scanner"
+	"github.com/peek8/conscan/pkg/utils"
 	"github.com/spf13/cobra"
-	"peek8.io/conscan/pkg/models"
-	"peek8.io/conscan/pkg/scanner"
-	"peek8.io/conscan/pkg/utils"
 )
 
 var scanUsage = `Scan a container image for vulnerabilities, exposed secrets, inefficient file storage, installed packages and check CIS(Center for Internet Security) Benchmarks.

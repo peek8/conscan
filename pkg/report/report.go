@@ -19,8 +19,8 @@ import (
 	"os"
 
 	"github.com/hashicorp/go-multierror"
+	"github.com/peek8/conscan/pkg/models"
 	"golang.org/x/xerrors"
-	"peek8.io/conscan/pkg/models"
 )
 
 type Writer interface {

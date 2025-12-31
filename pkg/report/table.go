@@ -18,9 +18,9 @@ import (
 
 	"github.com/fatih/color"
 	"github.com/jedib0t/go-pretty/v6/table"
+	"github.com/peek8/conscan/pkg/models"
+	"github.com/peek8/conscan/pkg/utils"
 	"github.com/samber/lo"
-	"peek8.io/conscan/pkg/models"
-	"peek8.io/conscan/pkg/utils"
 )
 
 const (

@@ -1,4 +1,4 @@
-module peek8.io/conscan
+module github.com/peek8/conscan
 
 go 1.25.0
 

@@ -5,8 +5,8 @@ import (
 	"log"
 
 	trivytypes "github.com/aquasecurity/trivy/pkg/types"
-	"peek8.io/conscan/pkg/grypemodels"
-	"peek8.io/conscan/pkg/utils"
+	"github.com/peek8/conscan/pkg/grypemodels"
+	"github.com/peek8/conscan/pkg/utils"
 )
 
 func ScanVuln(imageTag string) (*trivytypes.Report, *grypemodels.Document) {
