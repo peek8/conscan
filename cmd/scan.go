@@ -18,6 +18,11 @@ import (
 	"github.com/spf13/cobra"
 )
 
+const (
+	formatFlag = "format"
+	uploadFlag = "upload"
+)
+
 var scanUsage = `Scan a container image for vulnerabilities, exposed secrets, inefficient file storage, installed packages and check CIS(Center for Internet Security) Benchmarks.
 
 Examples:	
@@ -43,6 +48,7 @@ $ conscan scan --scanners=vuln,secret yourimage:tag
 
 var formatFlagVar string
 var outputFlagVar string
+var uploadFlagVar string
 var scannersFlagVar []string
 
 // scanCmd represents the scan command
@@ -58,8 +64,16 @@ var scanCmd = &cobra.Command{
 		opts := models.ScanOptions{
 			Format:     models.OutputFormat(formatFlagVar),
 			OutputFile: outputFlagVar,
+			UploadURL:  uploadFlagVar,
+			// check if the upload flag was used by user
+			Upload: cmd.Flags().Changed(uploadFlag),
 		}
 		opts.SetScanners(scannersFlagVar)
+
+		// if the command is to upload then the default format is json if not provided by user
+		if cmd.Flags().Changed(uploadFlag) && !cmd.Flags().Changed(formatFlag) {
+			opts.Format = models.FormatJson
+		}
 
 		msg, ok := opts.Validate()
 		if !ok {
@@ -72,8 +86,9 @@ var scanCmd = &cobra.Command{
 
 func init() {
 	// Here you will define your flags and configuration settings.
-	scanCmd.PersistentFlags().StringVarP(&formatFlagVar, "format", "f", "table", "Format of the scanning report")
+	scanCmd.PersistentFlags().StringVarP(&formatFlagVar, formatFlag, "f", "table", "Format of the scanning report")
 	scanCmd.PersistentFlags().StringVarP(&outputFlagVar, "output", "o", "", "Output File name (optional)")
+	scanCmd.PersistentFlags().StringVarP(&uploadFlagVar, uploadFlag, "u", "", "Upload API Endpoint (optional)")
 	scanCmd.PersistentFlags().StringSliceVar(&scannersFlagVar,
 		"scanners",
 		[]string{string(models.ScannerAll)},

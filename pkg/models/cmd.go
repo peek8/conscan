@@ -10,6 +10,7 @@ package models
 
 import (
 	"fmt"
+	"net/url"
 	"slices"
 
 	"github.com/samber/lo"
@@ -44,8 +45,10 @@ var SupportedScanners = []ScannerType{
 type ScanOptions struct {
 	Format     OutputFormat
 	OutputFile string
+	UploadURL  string
 	Scanners   []ScannerType
 	Quiet      bool
+	Upload     bool
 }
 
 func (opt *ScanOptions) SetScanners(scanners []string) {
@@ -71,6 +74,10 @@ func (opt *ScanOptions) Validate() (string, bool) {
 		return msg, false
 	}
 
+	if msg, ok := opt.ValidateUploadURL(opt.UploadURL); !ok {
+		return msg, false
+	}
+
 	return "", true
 }
 
@@ -93,6 +100,23 @@ func (opt *ScanOptions) ValidateFormat() (string, bool) {
 
 	if !slices.Contains(SupportedFormats, opt.Format) {
 		return fmt.Sprintf("Unsupported Format value %s, supported formats are: %s", opt.Format, SupportedFormats), false
+	}
+
+	return "", true
+}
+
+func (opt *ScanOptions) ValidateUploadURL(uploadUrl string) (string, bool) {
+	u, err := url.ParseRequestURI(uploadUrl)
+	if err != nil {
+		return fmt.Sprintf("invalid URL: %v", err), false
+	}
+
+	if u.Scheme != "http" && u.Scheme != "https" {
+		return "URL must start with http:// or https://", false
+	}
+
+	if u.Host == "" {
+		return "URL must have a host", false
 	}
 
 	return "", true

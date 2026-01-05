@@ -60,4 +60,3 @@ func trivyGeneralArgs(imageTag string) []string {
 func trivyVulnArgs(imageTag string) []string {
 	return append(trivyGeneralArgs(imageTag), "--scanners", "vuln")
 }
-
