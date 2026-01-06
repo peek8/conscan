@@ -20,6 +20,7 @@ import (
 
 	"github.com/hashicorp/go-multierror"
 	"github.com/peek8/conscan/pkg/models"
+	"github.com/samber/lo"
 	"golang.org/x/xerrors"
 )
 
@@ -28,17 +29,42 @@ type Writer interface {
 }
 
 func Write(ctx context.Context, report models.ScanReport, option models.ScanOptions) (err error) {
-	output, cleanup, err := OutputWriter(option)
-	if err != nil {
-		return xerrors.Errorf("failed to create a file: %w", err)
-	}
+	writer, cleanup, err := getWriter(option)
 	defer func() {
 		if cerr := cleanup(); cerr != nil {
 			err = multierror.Append(err, cerr)
 		}
 	}()
 
+	if err != nil {
+		return err
+	}
+
+	if err = writer.Write(ctx, report); err != nil {
+		return xerrors.Errorf("failed to write results: %w", err)
+	}
+
+	return nil
+}
+
+func getWriter(option models.ScanOptions) (wr Writer, cleanup func() error, err error) {
+	output, cleanup, err := OutputWriter(option)
+	if err != nil {
+		return nil, cleanup, xerrors.Errorf("failed to create a file: %w", err)
+	}
+
 	var writer Writer
+	if option.Upload {
+		writer = Uploader{
+			URL: option.UploadURL,
+			ContentType: lo.If(option.Format.Equal(models.FormatJson), "application/json").
+				ElseIf(option.Format.Equal(models.FormatHtml), "text/html").
+				Else("text/plain"),
+		}
+
+		return writer, cleanup, nil
+	}
+
 	switch option.Format {
 	case models.FormatJson:
 		writer = JsonWriter{Output: output}
@@ -47,14 +73,10 @@ func Write(ctx context.Context, report models.ScanReport, option models.ScanOpti
 	case models.FormatHtml:
 		writer = HtmlWriter{Output: output}
 	default:
-		return xerrors.Errorf("unknown format: %v", option.Format)
+		return nil, cleanup, xerrors.Errorf("unknown format: %v", option.Format)
 	}
 
-	if err = writer.Write(ctx, report); err != nil {
-		return xerrors.Errorf("failed to write results: %w", err)
-	}
-
-	return nil
+	return writer, cleanup, nil
 }
 
 // OutputWriter returns an output writer.

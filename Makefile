@@ -29,6 +29,14 @@ make-default: $(TASK)
 	@# run the default task in the taskfile
 	@$(TASK)
 
+.PHONY: fmt
+fmt: ## Run go fmt against code.
+	go fmt ./...
+
+.PHONY: vet
+vet: fmt ## Run go vet against code.
+	go vet ./...
+
 # to use the task in make command, lets wrap the superior `task` tool
 TASKS := $(shell bash -c "test -f $(TASK) && $(TASK) -l | grep '^\* ' | cut -d' ' -f2 | tr -d ':' | tr '\n' ' '" ) $(shell bash -c "test -f $(TASK) && $(TASK) -l | grep 'aliases:' | cut -d ':' -f 3 | tr '\n' ' ' | tr -d ','")
 

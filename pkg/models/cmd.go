@@ -34,6 +34,10 @@ const (
 	ScannerAll           ScannerType = "all"
 )
 
+func (of OutputFormat) Equal(f OutputFormat) bool {
+	return of == f
+}
+
 var SupportedFormats = []OutputFormat{
 	FormatJson, FormatTable, FormatHtml,
 }
@@ -74,8 +78,10 @@ func (opt *ScanOptions) Validate() (string, bool) {
 		return msg, false
 	}
 
-	if msg, ok := opt.ValidateUploadURL(opt.UploadURL); !ok {
-		return msg, false
+	if opt.Upload {
+		if msg, ok := opt.ValidateUploadURL(opt.UploadURL); !ok {
+			return msg, false
+		}
 	}
 
 	return "", true
