@@ -1,12 +1,12 @@
 /*
- * Copyright (c) 2025 peek8.io
+ * Copyright (c) 2026 peek8.io
  *
- * Created Date: Tuesday, September 2nd 2025, 6:46:14 pm
+ * Created Date: Tuesday, January 6th 2026, 5:28:40 pm
  * Author: Md. Asraful Haque
  *
  */
 
-package report
+package aggregator
 
 import (
 	"fmt"
@@ -14,11 +14,8 @@ import (
 	"strings"
 
 	trivydbtypes "github.com/aquasecurity/trivy-db/pkg/types"
-	trivyfanaltypes "github.com/aquasecurity/trivy/pkg/fanal/types"
 	trivytypes "github.com/aquasecurity/trivy/pkg/types"
-	docklereport "github.com/goodwithtech/dockle/pkg/report"
 	"github.com/samber/lo"
-	spdxv23 "github.com/spdx/tools-golang/spdx/v2/v2_3"
 
 	"github.com/peek8/conscan/pkg/grypemodels"
 	"github.com/peek8/conscan/pkg/models"
@@ -39,6 +36,23 @@ func (vg *VulnerabilitiesAggregrator) AggregateVulnerabilities() []models.Detect
 	vulns = vg.sortBySeverity(vulns)
 
 	return vulns
+}
+
+func (vg *VulnerabilitiesAggregrator) GenerateVulnerabilitySummary(vulns []models.DetectedVulnerability) *models.VulnerabilitySummary {
+	getCountFunc := func(severity string) func(v models.DetectedVulnerability) bool {
+		return func(v models.DetectedVulnerability) bool {
+			return strings.ToUpper(v.Severity) == severity
+		}
+	}
+
+	return &models.VulnerabilitySummary{
+		TotalCount:    len(vulns),
+		CriticalCount: lo.CountBy(vulns, getCountFunc(models.SeverityNameCritical)),
+		HighCount:     lo.CountBy(vulns, getCountFunc(models.SeverityNameHigh)),
+		MediumCount:   lo.CountBy(vulns, getCountFunc(models.SeverityNameMedium)),
+		LowCount:      lo.CountBy(vulns, getCountFunc(models.SeverityNameLow)),
+		UnknowsCount:  lo.CountBy(vulns, getCountFunc(models.SeverityNameUnknown)),
+	}
 }
 
 func (vg *VulnerabilitiesAggregrator) sortBySeverity(vulns []models.DetectedVulnerability) []models.DetectedVulnerability {
@@ -237,222 +251,4 @@ func (vg *VulnerabilitiesAggregrator) normalizeGripyVulnerabilities() []models.D
 			//LastModifiedDate: m.LastModifiedDate,
 		}
 	})
-}
-
-type SecretsAggregrator struct {
-	TrivyResult *trivytypes.Report
-}
-
-func (sg *SecretsAggregrator) ExtractSecrets() []models.DetectedPresSecret {
-	// for now secrets are from only trivy
-	return sg.ExtractTrivySecrets()
-}
-
-func (sg *SecretsAggregrator) ExtractTrivySecrets() []models.DetectedPresSecret {
-	results := lo.Filter(sg.TrivyResult.Results, func(res trivytypes.Result, i int) bool {
-		return res.Class == trivytypes.ClassSecret && len(res.Secrets) > 0
-	})
-
-	return lo.FlatMap(results, func(res trivytypes.Result, _ int) []models.DetectedPresSecret {
-		return sg.ToPresSecrets(sg.ExtractTrivySecretsFromResult(res), sg.TrivyResult.ArtifactName)
-	})
-}
-
-func (sg *SecretsAggregrator) ToPresSecrets(secrets []models.DetectedSecret, artifactName string) []models.DetectedPresSecret {
-	return lo.Map(secrets, func(s models.DetectedSecret, index int) models.DetectedPresSecret {
-		content := lo.Reduce(s.Code.Lines, func(agg string, line models.Line, index int) string {
-			return utils.EitherOr(len(line.Content) > 0, agg+"\n"+line.Content, agg+line.Content)
-		}, "")
-		locationType := s.DetectLocationType(artifactName)
-
-		lineNumbers := lo.Map(s.Code.Lines, func(line models.Line, index int) int {
-			return line.Number
-		})
-
-		return models.DetectedPresSecret{
-			Target:       s.Target,
-			Category:     s.Category,
-			Severity:     s.Severity,
-			Title:        s.Title,
-			StartLine:    lo.Min(lineNumbers),
-			EndLine:      lo.Max(lineNumbers),
-			Content:      content,
-			Description:  s.DetermineDesc(artifactName),
-			LocationType: locationType,
-		}
-	})
-}
-
-func (sg *SecretsAggregrator) ExtractTrivySecretsFromResult(res trivytypes.Result) []models.DetectedSecret {
-	// Omit match=created by, this is possible duplicate entries
-	secrets := lo.Filter(res.Secrets, func(item trivytypes.DetectedSecret, index int) bool {
-		return !strings.Contains(item.Match, "created_by")
-	})
-
-	return lo.Map(secrets, func(trSec trivytypes.DetectedSecret, index int) models.DetectedSecret {
-		return models.DetectedSecret{
-			Target:    res.Target,
-			RuleID:    trSec.RuleID,
-			Category:  string(trSec.Category),
-			Severity:  trSec.Severity,
-			Title:     trSec.Title,
-			StartLine: trSec.StartLine,
-			EndLine:   trSec.EndLine,
-			Code: models.Code{
-				Lines: lo.Map(trSec.Code.Lines, func(trLine trivyfanaltypes.Line, index int) models.Line {
-					return models.Line{
-						Number:      trLine.Number,
-						Content:     trLine.Content,
-						IsCause:     trLine.IsCause,
-						Annotation:  trLine.Annotation,
-						Truncated:   trLine.Truncated,
-						Highlighted: trLine.Highlighted,
-						FirstCause:  trLine.FirstCause,
-						LastCause:   trLine.LastCause,
-					}
-				}),
-			},
-		}
-	})
-}
-
-type SbomsAggregator struct {
-	SyftySBOMs *spdxv23.Document
-}
-
-func (sa *SbomsAggregator) AggregateSboms() *spdxv23.Document {
-	if sa.SyftySBOMs == nil {
-		return nil
-	}
-
-	// copy the struct
-	res := *sa.SyftySBOMs
-
-	sort.Slice(res.Packages, func(i, j int) bool {
-		// Sorts in ascending alphabetical order by Name
-		return res.Packages[i].PackageName < res.Packages[j].PackageName
-	})
-
-	// omit relationships and files
-	res.Relationships = []*spdxv23.Relationship{}
-	res.Files = []*spdxv23.File{}
-
-	return &res
-}
-
-type StorageAggregator struct {
-	StorageAnalysis *models.StorageAnalysis
-}
-
-func (sta *StorageAggregator) AggregateStorage() *models.StorageAnalysis {
-	if sta.StorageAnalysis == nil {
-		return nil
-	}
-
-	sta.StorageAnalysis.InefficientFiles = lo.Filter(sta.StorageAnalysis.InefficientFiles, func(f models.InefficientFile, index int) bool {
-		return !f.IsZeroSpace()
-	})
-
-	return sta.StorageAnalysis
-}
-
-type CISAggregator struct {
-	CISScans *docklereport.JsonOutputFormat
-}
-
-func (ca *CISAggregator) AggregateCIS() *docklereport.JsonOutputFormat {
-	return ca.CISScans
-}
-
-type ReportAggregrator struct {
-	Results     *models.ScanResult
-	ScanOptions models.ScanOptions
-
-	va  *VulnerabilitiesAggregrator
-	sa  *SecretsAggregrator
-	sba *SbomsAggregator
-	sta *StorageAggregator
-	ca  *CISAggregator
-}
-
-func (ra *ReportAggregrator) newReport() *models.ScanReport {
-	tr := ra.Results.TrivyResult
-
-	unknownOS := models.OS{
-		Name:   "-",
-		Family: "-",
-	}
-
-	return &models.ScanReport{
-		CreatedAt:    tr.CreatedAt,
-		CreatedAtStr: fmt.Sprintf("%s UTC", tr.CreatedAt.UTC().Format("2006-01-02 15:04:05")),
-		ArtifactName: tr.ArtifactName,
-		ArtifactType: string(tr.ArtifactType),
-		Metadata: models.ImageMetadata{
-			Size:    tr.Metadata.Size,
-			SizeStr: utils.HumanReadableSize(tr.Metadata.Size),
-			OS: utils.EitherOrFunc(lo.IsNotNil(tr.Metadata.OS), func() models.OS {
-				return models.OS{
-					Name:   tr.Metadata.OS.Name,
-					Family: string(tr.Metadata.OS.Family),
-				}
-			}, unknownOS),
-			ImageID:     tr.Metadata.ImageID,
-			RepoTags:    tr.Metadata.RepoTags,
-			RepoDigests: tr.Metadata.RepoDigests,
-			ImageConfig: models.ConfigFile{
-				Architecture: tr.Metadata.ImageConfig.Architecture,
-				OS:           tr.Metadata.ImageConfig.OS,
-				Author:       tr.Metadata.ImageConfig.Author,
-				Container:    tr.Metadata.ImageConfig.Container,
-				Created:      tr.Metadata.ImageConfig.Created.Time,
-			},
-		},
-	}
-}
-
-func (ra *ReportAggregrator) AggreagateReport() *models.ScanReport {
-	sr := ra.newReport()
-
-	sr.Vulnerabilities = ra.va.AggregateVulnerabilities()
-	sr.Secrets = ra.sa.ExtractSecrets()
-	sr.SBOMs = ra.sba.AggregateSboms()
-	sr.CISScans = ra.ca.AggregateCIS()
-	sr.StorageAnalysis = ra.sta.AggregateStorage()
-
-	if ra.ScanOptions.HasScanner(models.ScannerVulnerability) {
-		// this needs to be done after AggregateVulnerabilities
-		sr.VulnerabilitySummary = ra.generateVulnerabilitySummary(sr.Vulnerabilities)
-	}
-
-	return sr
-}
-
-func (ra *ReportAggregrator) generateVulnerabilitySummary(vulns []models.DetectedVulnerability) *models.VulnerabilitySummary {
-	getCountFunc := func(severity string) func(v models.DetectedVulnerability) bool {
-		return func(v models.DetectedVulnerability) bool {
-			return strings.ToUpper(v.Severity) == severity
-		}
-	}
-
-	return &models.VulnerabilitySummary{
-		TotalCount:    len(vulns),
-		CriticalCount: lo.CountBy(vulns, getCountFunc(models.SeverityNameCritical)),
-		HighCount:     lo.CountBy(vulns, getCountFunc(models.SeverityNameHigh)),
-		MediumCount:   lo.CountBy(vulns, getCountFunc(models.SeverityNameMedium)),
-		LowCount:      lo.CountBy(vulns, getCountFunc(models.SeverityNameLow)),
-		UnknowsCount:  lo.CountBy(vulns, getCountFunc(models.SeverityNameUnknown)),
-	}
-}
-
-func NewReportAggregator(result *models.ScanResult, opts models.ScanOptions) *ReportAggregrator {
-	return &ReportAggregrator{
-		Results:     result,
-		ScanOptions: opts,
-		va:          &VulnerabilitiesAggregrator{Result: result},
-		sa:          &SecretsAggregrator{TrivyResult: result.TrivyResult},
-		sba:         &SbomsAggregator{SyftySBOMs: result.SyftySBOMs},
-		sta:         &StorageAggregator{StorageAnalysis: result.StorageAnalysis},
-		ca:          &CISAggregator{CISScans: result.CISScans},
-	}
 }

@@ -21,6 +21,7 @@ import (
 	"github.com/peek8/conscan/pkg/log"
 	"github.com/peek8/conscan/pkg/models"
 	"github.com/peek8/conscan/pkg/report"
+	"github.com/peek8/conscan/pkg/report/aggregator"
 	"github.com/peek8/conscan/pkg/utils"
 	"github.com/samber/lo"
 )
@@ -78,7 +79,7 @@ func ScanImage(imageTag string, opts models.ScanOptions) {
 
 	// Now generating Report
 	spinner := log.StartSprinner("Generate Report", spinner.CharSets[14], out)
-	ra := report.NewReportAggregator(result, opts)
+	ra := aggregator.NewReportAggregator(result, opts)
 	agReport := ra.AggreagateReport()
 	spinner.Stop()
 	fmt.Fprintf(io.Writer(out), "[✔] %s finished\n", "Generate Report")
