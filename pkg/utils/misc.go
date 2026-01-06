@@ -54,3 +54,7 @@ func ExitOnError(err error) {
 		log.Fatalf("%v", err)
 	}
 }
+
+func NotEmptyEqual(x, y string) bool {
+	return x != "" && y != "" && x == y
+}
