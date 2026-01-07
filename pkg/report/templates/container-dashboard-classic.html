@@ -130,6 +130,11 @@
             font-weight: 600;
         }
 
+        .badge-count{ 
+            background: #f3f7f8;
+            color: #066186;
+        }
+
         .badge-critical, .badge-fatal { background: #ff1744; color: white; box-shadow: 0 4px 15px rgba(255, 23, 68, 0.4); }
         .badge-high, .badge-warn { background: #ff6d00; color: white; box-shadow: 0 4px 15px rgba(255, 109, 0, 0.4); }
         .badge-medium, .badge-info { background: #ffc400; color: #333; box-shadow: 0 4px 15px rgba(255, 196, 0, 0.4); }
@@ -352,7 +357,7 @@
             display: grid;
             grid-template-columns: 60px 100px 1fr;
             gap: 10px;
-            background: linear-gradient(135deg, #8b54b5, #d855a9, #d69669);;
+            background: linear-gradient(135deg, #4092ab, #29b3db, #17b9e8);
             color: white;
             padding: 10px;
             font-weight: 600;
@@ -438,8 +443,8 @@
         }
 
         .results-summary {
-            background: rgba(0, 230, 118, 0.1);
-            border: 1px solid #00e676;
+            background: #bde7f3;
+            border: 1px solid #7ec9e0;
             border-radius: 6px;
             padding: 10px;
             font-size: 0.9em;
@@ -641,7 +646,7 @@
         <div class="section">
             <div class="section-header">
                 <div class="section-title">Package Vulnerabilities</div>
-                <div class="badge badge-critical">{{.VulnerabilitySummary.TotalCount}} Total</div>
+                <div class="badge badge-count">{{.VulnerabilitySummary.TotalCount}} Total</div>
             </div>
             <div class="section-content">
                 <div class="scrollable-container">
@@ -681,7 +686,7 @@
         <div class="section">
             <div class="section-header">
                 <div class="section-title">Exposed Secrets</div>
-                <div class="badge badge-high">{{.Secrets | len}} Found</div>
+                <div class="badge badge-count">{{.Secrets | len}} Found</div>
             </div>
             <div class="section-content">
                 <div class="scrollable-container">
@@ -721,7 +726,7 @@
         <div class="section">
             <div class="section-header">
                 <div class="section-title">CIS Benchmark Violations</div>
-                <div class="badge badge-high">{{.CISScans.Details | len}} Issues</div>
+                <div class="badge badge-count">{{.CISScans.Details | len}} Issues</div>
             </div>
             <div class="section-content">
                 <div class="scrollable-container">
@@ -760,7 +765,7 @@
         <div class="section">
             <div class="section-header">
                 <div class="section-title">Storage Analysis</div>
-                <div class="badge badge-medium">{{.StorageAnalysis.WastedBytesHuman}} Wasted</div>
+                <div class="badge badge-count">{{.StorageAnalysis.WastedBytesHuman}} Wasted</div>
             </div>
             <div class="section-content">
                 <div class="scrollable-container">
@@ -831,7 +836,7 @@
         <div class="section">
             <div class="section-header">
                 <div class="section-title">Installed Packages</div>
-                <div class="badge badge-info">{{.SBOMs.Packages | len}} Total</div>
+                <div class="badge badge-count">{{.SBOMs.Packages | len}} Total</div>
             </div>
             <div class="section-content">
                 <div class="scrollable-container">
