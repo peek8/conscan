@@ -22,20 +22,20 @@ type ScanResult struct {
 
 // StorageAnalysis represents the parsed dive output
 type StorageAnalysis struct {
-	ImageSource       string            `json:"image_source"`
-	Efficiency        float64           `json:"efficiency"`
-	WastedBytes       int64             `json:"wasted_bytes"`
-	WastedBytesHuman  string            `json:"wasted_bytes_human"`
-	UserWastedPercent float64           `json:"user_wasted_percent"`
-	InefficientFiles  []InefficientFile `json:"inefficient_files"`
-	Results           []TestResult      `json:"results"`
+	ImageSource       string            `json:",omitempty"`
+	Efficiency        float64           `json:","`
+	WastedBytes       int64             `json:","`
+	WastedBytesHuman  string            `json:","`
+	UserWastedPercent float64           `json:","`
+	InefficientFiles  []InefficientFile `json:","`
+	Results           []TestResult      `json:","`
 }
 
 // InefficientFile represents a file that's wasting space
 type InefficientFile struct {
-	Count       int    `json:"count"`
-	WastedSpace string `json:"wasted_space"`
-	FilePath    string `json:"file_path"`
+	Count       int    `json:"Count"`
+	WastedSpace string `json:"WastedSpace"`
+	FilePath    string `json:"FilePath"`
 }
 
 func (ief *InefficientFile) IsZeroSpace() bool {

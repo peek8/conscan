@@ -13,6 +13,22 @@ type DetectedSecret struct {
 	Match     string `json:"Match"`
 }
 
+func (sec *DetectedSecret) DetectLocationType(artifactName string) LocationType {
+	if sec.Target == artifactName {
+		return LocationTypeEnvVar
+	}
+
+	return LocationTypeFileSystem
+}
+
+func (sec *DetectedSecret) DetermineDesc(artifactName string) string {
+	if sec.Target == artifactName {
+		return EnvVarSecretDescription
+	}
+
+	return FileSystemSecretDescription
+}
+
 type Code struct {
 	Lines []Line `json:"Lines"`
 }
@@ -51,20 +67,5 @@ type DetectedPresSecret struct {
 	Description string `json:"Description"`
 	// Location type could be filesystem, environment Variable
 	LocationType LocationType `json:"LocationType"`
-}
-
-func (sec *DetectedSecret) DetectLocationType(artifactName string) LocationType {
-	if sec.Target == artifactName {
-		return LocationTypeEnvVar
-	}
-
-	return LocationTypeFileSystem
-}
-
-func (sec *DetectedSecret) DetermineDesc(artifactName string) string {
-	if sec.Target == artifactName {
-		return EnvVarSecretDescription
-	}
-
-	return FileSystemSecretDescription
+	Location     string       `json:"Location"`
 }

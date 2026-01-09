@@ -52,7 +52,6 @@ var funcMap = template.FuncMap{
 	"getCvssScore":          getCvssScore,
 	"toLower":               toLower,
 	"emptyValuePlaceholder": emptyValuePlaceholder,
-	"getSecretLocation":     getSecretLocation,
 	"htmlLineBreak":         htmlLineBreak,
 	"slicesToHtmlLineBreak": slicesToHtmlLineBreak,
 	"twoDecimalPercentage":  twoDecimalPercentage,
