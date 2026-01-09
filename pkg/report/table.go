@@ -124,7 +124,7 @@ func (vsr VulnerabilitySummaryRenderer) Render(report models.ScanReport) error {
 	t.AppendSeparator()
 	t.AppendRow(table.Row{getSeverityColoredText(models.SeverityNameLow), report.VulnerabilitySummary.LowCount})
 	t.AppendSeparator()
-	t.AppendRow(table.Row{getSeverityColoredText(models.SeverityNameUnknown), report.VulnerabilitySummary.UnknowsCount})
+	t.AppendRow(table.Row{getSeverityColoredText(models.SeverityNameUnknown), report.VulnerabilitySummary.UnknownCount})
 	t.AppendSeparator()
 
 	t.Render()
@@ -181,7 +181,7 @@ func (sr SecretsRenderer) Render(report models.ScanReport) error {
 	t.AppendHeader(table.Row{"Location", "Title", "Category", "Content", "Severity", "Description"})
 	for _, sec := range report.Secrets {
 		t.AppendRow(table.Row{
-			getSecretLocation(sec), sec.Title, sec.Category, sec.Content, getSeverityColoredText(sec.Severity), sec.Description,
+			sec.Location, sec.Title, sec.Category, sec.Content, getSeverityColoredText(sec.Severity), sec.Description,
 		})
 		t.AppendSeparator()
 	}
@@ -189,14 +189,6 @@ func (sr SecretsRenderer) Render(report models.ScanReport) error {
 	t.Render()
 
 	return nil
-}
-
-func getSecretLocation(sec models.DetectedPresSecret) string {
-	if sec.LocationType == models.LocationTypeFileSystem {
-		return fmt.Sprintf("%s:%d:%d", sec.Target, sec.StartLine, sec.EndLine)
-	}
-
-	return "Environment Variables"
 }
 
 type SBOMRenderer struct {

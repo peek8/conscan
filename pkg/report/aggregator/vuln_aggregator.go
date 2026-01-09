@@ -38,6 +38,16 @@ func (vg *VulnerabilitiesAggregrator) AggregateVulnerabilities() []models.Detect
 	return vulns
 }
 
+func (vg *VulnerabilitiesAggregrator) aggregateProperties(vulns []models.DetectedVulnerability) []models.DetectedVulnerability {
+	return lo.Map(vulns, func(v models.DetectedVulnerability, _ int) models.DetectedVulnerability {
+		v.Title = utils.IfEmptyStr(v.Title, lo.Ellipsis(v.Description, 100))
+		v.CvssScoreStr = utils.EitherOr(v.CvssScore > 0, fmt.Sprintf("%.2f", v.CvssScore), "Unknown")
+
+		return v
+	})
+
+}
+
 func (vg *VulnerabilitiesAggregrator) GenerateVulnerabilitySummary(vulns []models.DetectedVulnerability) *models.VulnerabilitySummary {
 	getCountFunc := func(severity string) func(v models.DetectedVulnerability) bool {
 		return func(v models.DetectedVulnerability) bool {
@@ -51,7 +61,7 @@ func (vg *VulnerabilitiesAggregrator) GenerateVulnerabilitySummary(vulns []model
 		HighCount:     lo.CountBy(vulns, getCountFunc(models.SeverityNameHigh)),
 		MediumCount:   lo.CountBy(vulns, getCountFunc(models.SeverityNameMedium)),
 		LowCount:      lo.CountBy(vulns, getCountFunc(models.SeverityNameLow)),
-		UnknowsCount:  lo.CountBy(vulns, getCountFunc(models.SeverityNameUnknown)),
+		UnknownCount:  lo.CountBy(vulns, getCountFunc(models.SeverityNameUnknown)),
 	}
 }
 

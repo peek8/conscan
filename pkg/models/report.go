@@ -65,12 +65,3 @@ type ConfigFile struct {
 	Container    string    `json:"container,omitempty"`
 	Created      time.Time `json:"created,omitempty"`
 }
-
-type VulnerabilitySummary struct {
-	TotalCount    int `json:"totalCount"`
-	CriticalCount int `json:"criticalCount"`
-	HighCount     int `json:"highCount"`
-	MediumCount   int `json:"mediumCount"`
-	LowCount      int `json:"lowCount"`
-	UnknowsCount  int `json:"unknowsCount"`
-}

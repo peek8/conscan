@@ -9,6 +9,7 @@
 package aggregator
 
 import (
+	"fmt"
 	"strings"
 
 	trivyfanaltypes "github.com/aquasecurity/trivy/pkg/fanal/types"
@@ -47,8 +48,9 @@ func (sg *SecretsAggregrator) ToPresSecrets(secrets []models.DetectedSecret, art
 		lineNumbers := lo.Map(s.Code.Lines, func(line models.Line, index int) int {
 			return line.Number
 		})
+		location := lo.Ternary(locationType == models.LocationTypeFileSystem, fmt.Sprintf("%s:%d:%d", s.Target, s.StartLine, s.EndLine), "Environment Variables")
 
-		return models.DetectedPresSecret{
+		return  models.DetectedPresSecret{
 			Target:       s.Target,
 			Category:     s.Category,
 			Severity:     s.Severity,
@@ -58,7 +60,9 @@ func (sg *SecretsAggregrator) ToPresSecrets(secrets []models.DetectedSecret, art
 			Content:      content,
 			Description:  s.DetermineDesc(artifactName),
 			LocationType: locationType,
+			Location: location,
 		}
+
 	})
 }
 

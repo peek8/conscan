@@ -1,5 +1,9 @@
 package models
 
+import (
+	"fmt"
+)
+
 // DetectedSecret Secrets related model
 type DetectedSecret struct {
 	Target    string `json:"Target"`
@@ -11,6 +15,22 @@ type DetectedSecret struct {
 	EndLine   int    `json:"EndLine"`
 	Code      Code   `json:"Code"`
 	Match     string `json:"Match"`
+}
+
+func (sec *DetectedSecret) DetectLocationType(artifactName string) LocationType {
+	if sec.Target == artifactName {
+		return LocationTypeEnvVar
+	}
+
+	return LocationTypeFileSystem
+}
+
+func (sec *DetectedSecret) DetermineDesc(artifactName string) string {
+	if sec.Target == artifactName {
+		return EnvVarSecretDescription
+	}
+
+	return FileSystemSecretDescription
 }
 
 type Code struct {
@@ -51,20 +71,6 @@ type DetectedPresSecret struct {
 	Description string `json:"Description"`
 	// Location type could be filesystem, environment Variable
 	LocationType LocationType `json:"LocationType"`
+	Location string `json:"Location"`
 }
 
-func (sec *DetectedSecret) DetectLocationType(artifactName string) LocationType {
-	if sec.Target == artifactName {
-		return LocationTypeEnvVar
-	}
-
-	return LocationTypeFileSystem
-}
-
-func (sec *DetectedSecret) DetermineDesc(artifactName string) string {
-	if sec.Target == artifactName {
-		return EnvVarSecretDescription
-	}
-
-	return FileSystemSecretDescription
-}
